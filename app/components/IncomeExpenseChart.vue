@@ -5,13 +5,12 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
-  Title,
   Tooltip,
   Legend
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
 const props = defineProps<{
   data: MonthlyChartPoint[]
@@ -19,19 +18,21 @@ const props = defineProps<{
 
 const colorMode = useColorMode()
 
+const isDark = computed(() => colorMode.value === 'dark')
+
 const chartData = computed(() => ({
   labels: props.data.map(item => item.month),
   datasets: [
     {
       label: 'Gelir',
-      backgroundColor: '#0ea5e9',
-      borderRadius: 8,
+      backgroundColor: isDark.value ? '#4A8A76' : '#2F5D50',
+      borderRadius: 2,
       data: props.data.map(item => item.income)
     },
     {
       label: 'Gider',
-      backgroundColor: '#f97316',
-      borderRadius: 8,
+      backgroundColor: isDark.value ? '#9CA3AF' : '#1E2A38',
+      borderRadius: 2,
       data: props.data.map(item => item.expense)
     }
   ]
@@ -44,26 +45,22 @@ const chartOptions = computed(() => ({
     legend: {
       position: 'top' as const,
       labels: {
-        color: colorMode.value === 'dark' ? '#cbd5e1' : '#475569'
+        color: isDark.value ? '#9CA3AF' : '#6B7280',
+        boxWidth: 12,
+        font: { family: 'Source Sans 3', size: 12 }
       }
     }
   },
   scales: {
     x: {
-      ticks: {
-        color: colorMode.value === 'dark' ? '#94a3b8' : '#64748b'
-      },
-      grid: {
-        display: false
-      }
+      ticks: { color: isDark.value ? '#9CA3AF' : '#6B7280' },
+      grid: { display: false },
+      border: { color: isDark.value ? '#2C3642' : '#DEDAD0' }
     },
     y: {
-      ticks: {
-        color: colorMode.value === 'dark' ? '#94a3b8' : '#64748b'
-      },
-      grid: {
-        color: colorMode.value === 'dark' ? 'rgba(148,163,184,0.15)' : 'rgba(100,116,139,0.15)'
-      }
+      ticks: { color: isDark.value ? '#9CA3AF' : '#6B7280' },
+      grid: { color: isDark.value ? '#1E2732' : '#EFECE5' },
+      border: { color: isDark.value ? '#2C3642' : '#DEDAD0' }
     }
   }
 }))
@@ -79,9 +76,8 @@ const chartOptions = computed(() => ({
       />
       <EmptyState
         v-else
-        title="Grafik verisi yok"
-        description="Gelir ve gider kayıtları oluştukça aylık grafik burada görünecek."
-        icon="i-lucide-bar-chart-3"
+        quiet
+        message="Henüz veri yok — ilk kaydı ekleyin."
       />
     </ClientOnly>
   </div>

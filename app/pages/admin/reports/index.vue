@@ -168,7 +168,7 @@ onMounted(async () => {
       </template>
     </PageHeader>
 
-    <div class="mb-6 grid gap-4 rounded-2xl border border-default bg-default p-4 sm:grid-cols-3">
+    <div class="panel-card mb-6 grid gap-4 p-4 sm:grid-cols-3">
       <UFormField label="Başlangıç">
         <UInput
           v-model="periodFrom"
@@ -195,42 +195,40 @@ onMounted(async () => {
     <LoadingState v-if="pending" />
 
     <template v-else>
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Gelir"
           :value="formatCurrency(summary.income)"
           icon="i-lucide-trending-up"
-          tone="success"
           :hint="`${summary.paymentCount} ödeme`"
         />
         <StatCard
           title="Gider"
           :value="formatCurrency(summary.expenseTotal)"
           icon="i-lucide-trending-down"
-          tone="error"
           :hint="`${summary.expenseCount} kayıt`"
         />
         <StatCard
           title="Net"
           :value="formatCurrency(summary.net)"
           icon="i-lucide-wallet"
-          tone="info"
+          :critical="summary.net < 0"
         />
         <StatCard
           title="Bekleyen Aidat"
           :value="formatCurrency(summary.pendingDues)"
           icon="i-lucide-clock-3"
-          tone="warning"
+          :critical="summary.pendingDues > 0"
         />
       </div>
 
       <div class="mt-6 grid gap-6 lg:grid-cols-2">
-        <div class="rounded-2xl border border-default bg-default p-5 shadow-sm">
-          <div class="mb-4 flex items-center justify-between gap-2">
-            <h2 class="text-lg font-semibold">
+        <PanelCard>
+          <template #header>
+            <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
               Kategori Bazlı Giderler
             </h2>
-          </div>
+          </template>
           <EmptyState
             v-if="!byCategory.length"
             title="Gider yok"
@@ -250,13 +248,15 @@ onMounted(async () => {
               <span class="font-semibold">{{ formatCurrency(item.amount) }}</span>
             </li>
           </ul>
-        </div>
+        </PanelCard>
 
-        <div class="rounded-2xl border border-default bg-default p-5 shadow-sm">
-          <div class="mb-4 flex items-center justify-between gap-2">
-            <h2 class="text-lg font-semibold">
+        <PanelCard>
+          <template #header>
+            <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
               Ödeme Dışa Aktarma
             </h2>
+          </template>
+          <template #actions>
             <UButton
               size="sm"
               color="neutral"
@@ -267,11 +267,11 @@ onMounted(async () => {
             >
               Ödemeleri CSV
             </UButton>
-          </div>
+          </template>
           <p class="text-sm text-muted">
             Filtrelenmiş {{ filteredPayments.length }} ödeme kaydı dışa aktarılabilir. Aidat ve gider listeleri ilgili sayfalardan da PDF/CSV olarak alınabilir.
           </p>
-        </div>
+        </PanelCard>
       </div>
     </template>
   </div>

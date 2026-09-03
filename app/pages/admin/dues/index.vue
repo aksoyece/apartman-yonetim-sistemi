@@ -189,83 +189,78 @@ onMounted(async () => {
       </template>
     </EmptyState>
 
-    <div
-      v-else
-      class="overflow-hidden rounded-2xl border border-default bg-default"
-    >
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-elevated/70 text-left text-muted">
-            <tr>
-              <th class="px-4 py-3 font-medium">
-                Daire
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Dönem
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Tutar
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Vade
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Durum
-              </th>
-              <th class="px-4 py-3 font-medium text-right">
-                İşlem
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="item in items"
-              :key="item.id"
-              class="border-t border-default"
-            >
-              <td class="px-4 py-3 font-medium">
-                {{ apartmentLabel(item.apartment) }}
-              </td>
-              <td class="px-4 py-3">
-                {{ item.period }}
-              </td>
-              <td class="px-4 py-3">
-                {{ formatCurrency(item.amount) }}
-              </td>
-              <td class="px-4 py-3">
-                {{ formatDate(item.due_date) }}
-              </td>
-              <td class="px-4 py-3">
-                <UBadge
-                  :color="dueStatusColors[item.status]"
-                  variant="subtle"
-                >
-                  {{ dueStatusLabels[item.status] }}
-                </UBadge>
-              </td>
-              <td class="px-4 py-3">
-                <div class="flex justify-end gap-1">
-                  <UButton
-                    icon="i-lucide-pencil"
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    @click="openEdit(item)"
-                  />
-                  <UButton
-                    icon="i-lucide-trash-2"
-                    color="error"
-                    variant="ghost"
-                    size="sm"
-                    @click="onDelete(item.id)"
-                  />
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTableShell v-else>
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 text-left text-muted dark:bg-white/5">
+          <tr>
+            <th class="px-4 py-3 font-medium">
+              Daire
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Dönem
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Tutar
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Vade
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Durum
+            </th>
+            <th class="px-4 py-3 font-medium text-right">
+              İşlem
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in items"
+            :key="item.id"
+            class="border-t border-default"
+          >
+            <td class="px-4 py-3 font-medium">
+              {{ apartmentLabel(item.apartment) }}
+            </td>
+            <td class="px-4 py-3">
+              {{ item.period }}
+            </td>
+            <td class="px-4 py-3">
+              {{ formatCurrency(item.amount) }}
+            </td>
+            <td class="px-4 py-3">
+              {{ formatDate(item.due_date) }}
+            </td>
+            <td class="px-4 py-3">
+              <UBadge
+                :color="dueStatusColors[item.status]"
+                variant="subtle"
+              >
+                {{ dueStatusLabels[item.status] }}
+              </UBadge>
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-1">
+                <UButton
+                  icon="i-lucide-pencil"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  @click="openEdit(item)"
+                />
+                <UButton
+                  icon="i-lucide-trash-2"
+                  color="error"
+                  variant="ghost"
+                  size="sm"
+                  @click="onDelete(item.id)"
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </DataTableShell>
 
     <UModal v-model:open="open">
       <template #content>

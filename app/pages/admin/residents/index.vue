@@ -67,57 +67,52 @@ onMounted(fetchAll)
       icon="i-lucide-users"
     />
 
-    <div
-      v-else
-      class="overflow-hidden rounded-2xl border border-default bg-default"
-    >
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-elevated/70 text-left text-muted">
-            <tr>
-              <th class="px-4 py-3 font-medium">
-                Ad Soyad
-              </th>
-              <th class="px-4 py-3 font-medium">
-                E-posta
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Telefon
-              </th>
-              <th class="px-4 py-3 font-medium text-right">
-                İşlem
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="item in items"
-              :key="item.id"
-              class="border-t border-default"
-            >
-              <td class="px-4 py-3 font-medium">
-                {{ item.full_name }}
-              </td>
-              <td class="px-4 py-3">
-                {{ item.email || '—' }}
-              </td>
-              <td class="px-4 py-3">
-                {{ item.phone || '—' }}
-              </td>
-              <td class="px-4 py-3 text-right">
-                <UButton
-                  icon="i-lucide-pencil"
-                  color="neutral"
-                  variant="ghost"
-                  size="sm"
-                  @click="openEdit(item)"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTableShell v-else>
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 text-left text-muted dark:bg-white/5">
+          <tr>
+            <th class="px-4 py-3 font-medium">
+              Ad Soyad
+            </th>
+            <th class="px-4 py-3 font-medium">
+              E-posta
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Telefon
+            </th>
+            <th class="px-4 py-3 font-medium text-right">
+              İşlem
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in items"
+            :key="item.id"
+            class="border-t border-default"
+          >
+            <td class="px-4 py-3 font-medium">
+              {{ item.full_name }}
+            </td>
+            <td class="px-4 py-3">
+              {{ item.email || '—' }}
+            </td>
+            <td class="px-4 py-3">
+              {{ item.phone || '—' }}
+            </td>
+            <td class="px-4 py-3 text-right">
+              <UButton
+                icon="i-lucide-pencil"
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                @click="openEdit(item)"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </DataTableShell>
 
     <UModal v-model:open="open">
       <template #content>

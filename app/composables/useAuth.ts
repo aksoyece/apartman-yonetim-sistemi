@@ -3,6 +3,7 @@ import { getErrorMessage } from '~/utils/format'
 
 export function useAuth() {
   const supabase = useDb()
+  const authClient = useSupabaseClient()
   const user = useSupabaseUser()
   const profile = useState<Profile | null>('auth-profile', () => null)
   const loading = useState('auth-loading', () => false)
@@ -12,10 +13,32 @@ export function useAuth() {
   const isAdmin = computed(() => profile.value?.role === 'admin')
   const isResident = computed(() => profile.value?.role === 'resident')
 
-  async function fetchProfile() {
-    if (!user.value) {
-      profile.value = null
-      return null
+  async function waitForUser(timeoutMs = 4000): Promise<any> {
+    if (user.value) return user.value
+
+    const started = Date.now()
+    return await new Promise((resolve) => {
+      const stop = watch(user, (value) => {
+        if (value) {
+          stop()
+          resolve(value)
+        } else if (Date.now() - started > timeoutMs) {
+          stop()
+          resolve(null)
+        }
+      }, { immediate: true })
+
+      setTimeout(() => {
+        stop()
+        resolve(user.value ?? null)
+      }, timeoutMs)
+    })
+  }
+
+  async function fetchProfile(userId?: string) {
+    const id = userId || user.value?.id
+    if (!id) {
+      return profile.value
     }
 
     loading.value = true
@@ -23,29 +46,64 @@ export function useAuth() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.value.id)
-        .single()
+        .eq('id', id)
+        .maybeSingle()
 
       if (error) throw error
+
+      if (!data) {
+        const meta = user.value?.user_metadata || {}
+        const { data: created, error: upsertError } = await supabase
+          .from('profiles')
+          .upsert({
+            id,
+            full_name: meta.full_name || user.value?.email?.split('@')[0] || 'Kullanıcı',
+            email: user.value?.email || null,
+            phone: meta.phone || null,
+            role: (meta.role as UserRole) || 'resident'
+          })
+          .select('*')
+          .single()
+
+        if (upsertError) throw upsertError
+        profile.value = created as Profile
+        return profile.value
+      }
+
       profile.value = data as Profile
       return profile.value
     } catch (error) {
       console.error(error)
-      profile.value = null
-      return null
+      // Mevcut profili silme — geçici hata login'e atmasın
+      return profile.value
     } finally {
       loading.value = false
     }
   }
 
+  async function ensureSession() {
+    let current = user.value
+    if (!current) {
+      current = await waitForUser(2000)
+    }
+    if (!current) return null
+
+    if (!profile.value || profile.value.id !== current.id) {
+      await fetchProfile(current.id)
+    }
+    return profile.value
+  }
+
   async function signIn(email: string, password: string) {
     loading.value = true
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await authClient.auth.signInWithPassword({ email, password })
       if (error) throw error
-      await fetchProfile()
+
+      await waitForUser()
+      const nextProfile = await fetchProfile(data.user?.id)
       toast.add({ title: 'Giriş başarılı', color: 'success', icon: 'i-lucide-check-circle' })
-      return true
+      return nextProfile
     } catch (error) {
       toast.add({
         title: 'Giriş başarısız',
@@ -53,7 +111,7 @@ export function useAuth() {
         color: 'error',
         icon: 'i-lucide-alert-circle'
       })
-      return false
+      return null
     } finally {
       loading.value = false
     }
@@ -68,7 +126,7 @@ export function useAuth() {
   }) {
     loading.value = true
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await authClient.auth.signUp({
         email: payload.email,
         password: payload.password,
         options: {
@@ -80,13 +138,25 @@ export function useAuth() {
         }
       })
       if (error) throw error
+
+      if (data.session && data.user) {
+        await waitForUser()
+        await fetchProfile(data.user.id)
+        toast.add({
+          title: 'Kayıt ve giriş başarılı',
+          color: 'success',
+          icon: 'i-lucide-check-circle'
+        })
+        return { signedIn: true, profile: profile.value }
+      }
+
       toast.add({
         title: 'Kayıt oluşturuldu',
         description: 'Giriş yaparak devam edebilirsiniz.',
         color: 'success',
         icon: 'i-lucide-check-circle'
       })
-      return true
+      return { signedIn: false, profile: null }
     } catch (error) {
       toast.add({
         title: 'Kayıt başarısız',
@@ -94,14 +164,14 @@ export function useAuth() {
         color: 'error',
         icon: 'i-lucide-alert-circle'
       })
-      return false
+      return null
     } finally {
       loading.value = false
     }
   }
 
   async function signOut() {
-    await supabase.auth.signOut()
+    await authClient.auth.signOut()
     profile.value = null
     await navigateTo('/login')
   }
@@ -120,9 +190,11 @@ export function useAuth() {
     isAdmin,
     isResident,
     fetchProfile,
+    ensureSession,
     signIn,
     signUp,
     signOut,
-    homePathForRole
+    homePathForRole,
+    waitForUser
   }
 }

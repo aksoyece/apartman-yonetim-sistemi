@@ -1,13 +1,11 @@
 export default defineNuxtRouteMiddleware(async () => {
-  const user = useSupabaseUser()
-  if (!user.value) return
+  const { waitForUser, ensureSession, homePathForRole, profile } = useAuth()
 
-  const { profile, fetchProfile, homePathForRole } = useAuth()
-  if (!profile.value) {
-    await fetchProfile()
-  }
+  const currentUser = await waitForUser(1500)
+  if (!currentUser) return
 
-  if (profile.value) {
-    return navigateTo(homePathForRole(profile.value.role))
+  const nextProfile = await ensureSession()
+  if (nextProfile || profile.value) {
+    return navigateTo(homePathForRole((nextProfile || profile.value)?.role), { replace: true })
   }
 })

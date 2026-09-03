@@ -6,7 +6,7 @@ useHead({
   link: [
     {
       rel: 'stylesheet',
-      href: 'https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap'
+      href: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap'
     }
   ],
   htmlAttrs: {
@@ -21,11 +21,13 @@ useSeoMeta({
   ogDescription: 'Modern, güvenli ve responsive apartman yönetim paneli.'
 })
 
-const { user, fetchProfile } = useAuth()
+const { user, profile, fetchProfile } = useAuth()
 
 watch(user, async (value) => {
-  if (value) {
-    await fetchProfile()
+  if (value?.id) {
+    await fetchProfile(value.id)
+  } else if (!value) {
+    profile.value = null
   }
 }, { immediate: true })
 </script>

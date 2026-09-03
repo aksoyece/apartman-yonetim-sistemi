@@ -77,15 +77,14 @@ useRealtimeChannel('admin-maintenance', 'maintenance_requests', fetchAll)
       v-else
       class="space-y-4"
     >
-      <article
+      <PanelCard
         v-for="item in items"
         :key="item.id"
-        class="rounded-2xl border border-default bg-default p-5 shadow-sm"
       >
         <div class="flex flex-wrap items-start justify-between gap-3">
           <div class="min-w-0 flex-1">
             <div class="mb-2 flex flex-wrap items-center gap-2">
-              <h2 class="text-lg font-semibold">
+              <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
                 {{ item.title }}
               </h2>
               <UBadge
@@ -135,7 +134,7 @@ useRealtimeChannel('admin-maintenance', 'maintenance_requests', fetchAll)
             Durum Güncelle
           </UButton>
         </div>
-      </article>
+      </PanelCard>
     </div>
 
     <UModal v-model:open="open">

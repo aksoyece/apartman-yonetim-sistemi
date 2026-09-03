@@ -190,80 +190,75 @@ onMounted(fetchAll)
       </template>
     </EmptyState>
 
-    <div
-      v-else
-      class="overflow-hidden rounded-2xl border border-default bg-default"
-    >
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-elevated/70 text-left text-muted">
-            <tr>
-              <th class="px-4 py-3 font-medium">
-                Başlık
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Kategori
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Tutar
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Tarih
-              </th>
-              <th class="px-4 py-3 font-medium text-right">
-                İşlem
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="item in items"
-              :key="item.id"
-              class="border-t border-default"
-            >
-              <td class="px-4 py-3">
-                <p class="font-medium">
-                  {{ item.title }}
-                </p>
-                <p
-                  v-if="item.description"
-                  class="text-xs text-muted"
-                >
-                  {{ item.description }}
-                </p>
-              </td>
-              <td class="px-4 py-3 capitalize">
-                {{ item.category }}
-              </td>
-              <td class="px-4 py-3 font-medium text-error">
-                {{ formatCurrency(item.amount) }}
-              </td>
-              <td class="px-4 py-3">
-                {{ formatDate(item.expense_date) }}
-              </td>
-              <td class="px-4 py-3">
-                <div class="flex justify-end gap-1">
-                  <UButton
-                    icon="i-lucide-pencil"
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    @click="openEdit(item)"
-                  />
-                  <UButton
-                    icon="i-lucide-trash-2"
-                    color="error"
-                    variant="ghost"
-                    size="sm"
-                    @click="onDelete(item.id)"
-                  />
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTableShell v-else>
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 text-left text-muted dark:bg-white/5">
+          <tr>
+            <th class="px-4 py-3 font-medium">
+              Başlık
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Kategori
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Tutar
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Tarih
+            </th>
+            <th class="px-4 py-3 font-medium text-right">
+              İşlem
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in items"
+            :key="item.id"
+            class="border-t border-default"
+          >
+            <td class="px-4 py-3">
+              <p class="font-medium">
+                {{ item.title }}
+              </p>
+              <p
+                v-if="item.description"
+                class="text-xs text-muted"
+              >
+                {{ item.description }}
+              </p>
+            </td>
+            <td class="px-4 py-3 capitalize">
+              {{ item.category }}
+            </td>
+            <td class="px-4 py-3 font-medium text-error">
+              {{ formatCurrency(item.amount) }}
+            </td>
+            <td class="px-4 py-3">
+              {{ formatDate(item.expense_date) }}
+            </td>
+            <td class="px-4 py-3">
+              <div class="flex justify-end gap-1">
+                <UButton
+                  icon="i-lucide-pencil"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  @click="openEdit(item)"
+                />
+                <UButton
+                  icon="i-lucide-trash-2"
+                  color="error"
+                  variant="ghost"
+                  size="sm"
+                  @click="onDelete(item.id)"
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </DataTableShell>
 
     <UModal v-model:open="open">
       <template #content>

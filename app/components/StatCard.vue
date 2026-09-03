@@ -4,42 +4,35 @@ defineProps<{
   value: string
   icon: string
   hint?: string
-  tone?: 'default' | 'success' | 'warning' | 'error' | 'info'
+  /** Sadece gerçekten kritik/olumsuz değerde true — sayı kiremit kırmızısı olur */
+  critical?: boolean
 }>()
-
-const toneClasses: Record<string, string> = {
-  default: 'bg-elevated text-default',
-  success: 'bg-success/10 text-success',
-  warning: 'bg-warning/10 text-warning',
-  error: 'bg-error/10 text-error',
-  info: 'bg-info/10 text-info'
-}
 </script>
 
 <template>
-  <div class="rounded-2xl border border-default bg-default p-5 shadow-sm">
+  <div class="panel-card panel-card-interactive p-5">
     <div class="flex items-start justify-between gap-3">
-      <div>
-        <p class="text-sm text-muted">
+      <div class="min-w-0">
+        <p class="text-xs font-medium uppercase tracking-wide text-muted-ink">
           {{ title }}
         </p>
-        <p class="mt-2 text-2xl font-semibold tracking-tight">
+        <p
+          class="mt-2 font-display text-2xl font-semibold tracking-tight"
+          :class="critical ? 'text-danger' : 'text-ink'"
+        >
           {{ value }}
         </p>
         <p
           v-if="hint"
-          class="mt-1 text-xs text-muted"
+          class="mt-1 text-xs text-muted-ink"
         >
           {{ hint }}
         </p>
       </div>
-      <div
-        class="flex size-11 items-center justify-center rounded-xl"
-        :class="toneClasses[tone || 'default']"
-      >
+      <div class="flex size-9 shrink-0 items-center justify-center rounded-[5px] bg-soft text-muted-ink">
         <UIcon
           :name="icon"
-          class="size-5"
+          class="size-4"
         />
       </div>
     </div>

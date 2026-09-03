@@ -5,12 +5,12 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center rounded-2xl border border-default bg-default px-6 py-16">
+  <div class="panel-card flex flex-col items-center justify-center px-6 py-14">
     <UIcon
       name="i-lucide-loader-circle"
-      class="size-8 animate-spin text-primary"
+      class="size-6 animate-spin text-accent"
     />
-    <p class="mt-3 text-sm text-muted">
+    <p class="mt-3 text-sm text-muted-ink">
       {{ label || 'Yükleniyor...' }}
     </p>
   </div>

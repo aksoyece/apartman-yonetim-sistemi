@@ -6,14 +6,14 @@ defineProps<{
 </script>
 
 <template>
-  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+  <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h1 class="text-2xl font-semibold tracking-tight">
+      <h1 class="font-display text-3xl font-semibold tracking-tight text-ink">
         {{ title }}
       </h1>
       <p
         v-if="description"
-        class="mt-1 text-sm text-muted"
+        class="mt-1 max-w-2xl text-sm text-muted-ink"
       >
         {{ description }}
       </p>

@@ -130,13 +130,12 @@ useRealtimeChannel('resident-maintenance', 'maintenance_requests', fetchMaintena
       v-else
       class="space-y-4"
     >
-      <article
+      <PanelCard
         v-for="item in items"
         :key="item.id"
-        class="rounded-2xl border border-default bg-default p-5 shadow-sm"
       >
         <div class="mb-2 flex flex-wrap items-center gap-2">
-          <h2 class="text-lg font-semibold">
+          <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
             {{ item.title }}
           </h2>
           <UBadge
@@ -152,16 +151,16 @@ useRealtimeChannel('resident-maintenance', 'maintenance_requests', fetchMaintena
             {{ priorityLabels[item.priority] }}
           </UBadge>
         </div>
-        <p class="whitespace-pre-wrap text-sm text-muted">
+        <p class="whitespace-pre-wrap text-sm text-slate-500 dark:text-slate-400">
           {{ item.description }}
         </p>
-        <div class="mt-3 flex flex-wrap gap-4 text-xs text-muted">
+        <div class="mt-3 flex flex-wrap gap-4 text-xs text-slate-500 dark:text-slate-400">
           <span>{{ apartmentLabel(item.apartment) }}</span>
           <span>{{ formatDateTime(item.created_at) }}</span>
         </div>
         <p
           v-if="item.admin_notes"
-          class="mt-3 rounded-xl bg-elevated px-3 py-2 text-sm"
+          class="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm dark:bg-white/5"
         >
           <span class="font-medium">Yönetici notu:</span> {{ item.admin_notes }}
         </p>
@@ -176,7 +175,7 @@ useRealtimeChannel('resident-maintenance', 'maintenance_requests', fetchMaintena
         >
           Ek dosyayı aç
         </UButton>
-      </article>
+      </PanelCard>
     </div>
 
     <UModal v-model:open="open">

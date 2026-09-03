@@ -1,15 +1,23 @@
 export default defineNuxtRouteMiddleware(async () => {
-  const user = useSupabaseUser()
-  if (!user.value) {
+  const { ensureSession, homePathForRole, waitForUser, profile } = useAuth()
+
+  const currentUser = await waitForUser(2500)
+  if (!currentUser) {
     return navigateTo('/login')
   }
 
-  const { profile, fetchProfile, homePathForRole } = useAuth()
-  if (!profile.value) {
-    await fetchProfile()
+  const nextProfile = await ensureSession()
+  if (!nextProfile) {
+    // Oturum var ama profil yok — login'e atmak yerine admin ana sayfada tutma/retry
+    return navigateTo('/admin')
   }
 
-  if (profile.value?.role !== 'admin') {
-    return navigateTo(homePathForRole(profile.value?.role))
+  if (nextProfile.role !== 'admin') {
+    return navigateTo(homePathForRole(nextProfile.role))
+  }
+
+  // profile state senkron kalsın
+  if (!profile.value) {
+    profile.value = nextProfile
   }
 })

@@ -34,56 +34,51 @@ onMounted(async () => {
       icon="i-lucide-wallet"
     />
 
-    <div
-      v-else
-      class="overflow-hidden rounded-2xl border border-default bg-default"
-    >
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="bg-elevated/70 text-left text-muted">
-            <tr>
-              <th class="px-4 py-3 font-medium">
-                Daire
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Tutar
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Tarih
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Yöntem
-              </th>
-              <th class="px-4 py-3 font-medium">
-                Not
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="item in items"
-              :key="item.id"
-              class="border-t border-default"
-            >
-              <td class="px-4 py-3 font-medium">
-                {{ apartmentLabel(item.apartment) }}
-              </td>
-              <td class="px-4 py-3 font-medium text-success">
-                {{ formatCurrency(item.amount) }}
-              </td>
-              <td class="px-4 py-3">
-                {{ formatDate(item.payment_date) }}
-              </td>
-              <td class="px-4 py-3">
-                {{ paymentMethodLabels[item.method] }}
-              </td>
-              <td class="px-4 py-3">
-                {{ item.notes || '—' }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <DataTableShell v-else>
+      <table class="min-w-full text-sm">
+        <thead class="bg-slate-50 text-left text-muted dark:bg-white/5">
+          <tr>
+            <th class="px-4 py-3 font-medium">
+              Daire
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Tutar
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Tarih
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Yöntem
+            </th>
+            <th class="px-4 py-3 font-medium">
+              Not
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in items"
+            :key="item.id"
+            class="border-t border-default"
+          >
+            <td class="px-4 py-3 font-medium">
+              {{ apartmentLabel(item.apartment) }}
+            </td>
+            <td class="px-4 py-3 font-medium text-emerald-600 dark:text-emerald-400">
+              {{ formatCurrency(item.amount) }}
+            </td>
+            <td class="px-4 py-3">
+              {{ formatDate(item.payment_date) }}
+            </td>
+            <td class="px-4 py-3">
+              {{ paymentMethodLabels[item.method] }}
+            </td>
+            <td class="px-4 py-3">
+              {{ item.notes || '—' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </DataTableShell>
   </div>
 </template>

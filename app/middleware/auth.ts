@@ -1,11 +1,10 @@
 export default defineNuxtRouteMiddleware(async () => {
-  const user = useSupabaseUser()
-  if (!user.value) {
+  const { waitForUser, ensureSession } = useAuth()
+
+  const currentUser = await waitForUser(2500)
+  if (!currentUser) {
     return navigateTo('/login')
   }
 
-  const { profile, fetchProfile } = useAuth()
-  if (!profile.value) {
-    await fetchProfile()
-  }
+  await ensureSession()
 })

@@ -28,6 +28,8 @@ const openMaintenanceCount = computed(() =>
   maintenance.value.filter(m => m.status === 'open' || m.status === 'in_progress').length
 )
 
+const unpaidDues = computed(() => dues.value.filter(d => d.status !== 'paid').slice(0, 5))
+
 onMounted(async () => {
   await fetchMine()
   const ids = apartments.value.map(a => a.id)
@@ -49,38 +51,38 @@ onMounted(async () => {
     <LoadingState v-if="pending" />
 
     <template v-else>
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Dairelerim"
           :value="String(apartments.length)"
           icon="i-lucide-door-open"
-          tone="info"
         />
         <StatCard
           title="Bekleyen Borç"
           :value="formatCurrency(pendingDuesTotal)"
           icon="i-lucide-clock-3"
-          tone="warning"
+          :critical="pendingDuesTotal > 0"
         />
         <StatCard
           title="Ödenen Aidat"
           :value="formatCurrency(paidDuesTotal)"
           icon="i-lucide-circle-check"
-          tone="success"
         />
         <StatCard
           title="Açık Arızalarım"
           :value="String(openMaintenanceCount)"
           icon="i-lucide-wrench"
-          tone="error"
+          :critical="openMaintenanceCount > 0"
         />
       </div>
 
       <div class="mt-6 grid gap-6 lg:grid-cols-2">
-        <div class="rounded-2xl border border-default bg-default p-5 shadow-sm">
-          <h2 class="mb-4 text-lg font-semibold">
-            Son Duyurular
-          </h2>
+        <PanelCard>
+          <template #header>
+            <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
+              Son Duyurular
+            </h2>
+          </template>
           <EmptyState
             v-if="!announcements.length"
             title="Duyuru yok"
@@ -89,15 +91,15 @@ onMounted(async () => {
           />
           <ul
             v-else
-            class="space-y-3"
+            class="space-y-2"
           >
             <li
               v-for="item in announcements.slice(0, 4)"
               :key="item.id"
-              class="rounded-xl bg-elevated/60 px-3 py-3"
+              class="rounded-xl bg-slate-50 px-3 py-3 dark:bg-white/5"
             >
               <div class="mb-1 flex items-center gap-2">
-                <p class="font-medium">
+                <p class="font-medium text-slate-900 dark:text-white">
                   {{ item.title }}
                 </p>
                 <UBadge
@@ -108,42 +110,44 @@ onMounted(async () => {
                   {{ priorityLabels[item.priority] }}
                 </UBadge>
               </div>
-              <p class="line-clamp-2 text-sm text-muted">
+              <p class="line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
                 {{ item.content }}
               </p>
             </li>
           </ul>
-        </div>
+        </PanelCard>
 
-        <div class="rounded-2xl border border-default bg-default p-5 shadow-sm">
-          <h2 class="mb-4 text-lg font-semibold">
-            Bekleyen Aidatlar
-          </h2>
+        <PanelCard>
+          <template #header>
+            <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
+              Bekleyen Aidatlar
+            </h2>
+          </template>
           <EmptyState
-            v-if="!dues.filter(d => d.status !== 'paid').length"
+            v-if="!unpaidDues.length"
             title="Borç bulunmuyor"
             description="Tüm aidatlarınız ödenmiş görünüyor."
             icon="i-lucide-badge-check"
           />
           <ul
             v-else
-            class="space-y-3"
+            class="space-y-2"
           >
             <li
-              v-for="item in dues.filter(d => d.status !== 'paid').slice(0, 5)"
+              v-for="item in unpaidDues"
               :key="item.id"
-              class="flex items-center justify-between gap-3 rounded-xl bg-elevated/60 px-3 py-3"
+              class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-3 dark:bg-white/5"
             >
               <div>
-                <p class="text-sm font-medium">
+                <p class="text-sm font-medium text-slate-900 dark:text-white">
                   {{ item.period }} · {{ apartmentLabel(item.apartment) }}
                 </p>
-                <p class="text-xs text-muted">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
                   Vade: {{ formatDate(item.due_date) }}
                 </p>
               </div>
               <div class="text-right">
-                <p class="text-sm font-semibold">
+                <p class="text-sm font-semibold text-slate-900 dark:text-white">
                   {{ formatCurrency(item.amount) }}
                 </p>
                 <UBadge
@@ -156,7 +160,7 @@ onMounted(async () => {
               </div>
             </li>
           </ul>
-        </div>
+        </PanelCard>
       </div>
     </template>
   </div>

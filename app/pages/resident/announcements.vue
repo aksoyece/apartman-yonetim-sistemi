@@ -34,13 +34,12 @@ onMounted(() => fetchAll(false))
       v-else
       class="space-y-4"
     >
-      <article
+      <PanelCard
         v-for="item in items"
         :key="item.id"
-        class="rounded-2xl border border-default bg-default p-5 shadow-sm"
       >
         <div class="mb-2 flex flex-wrap items-center gap-2">
-          <h2 class="text-lg font-semibold">
+          <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
             {{ item.title }}
           </h2>
           <UBadge
@@ -50,13 +49,13 @@ onMounted(() => fetchAll(false))
             {{ priorityLabels[item.priority] }}
           </UBadge>
         </div>
-        <p class="whitespace-pre-wrap text-sm text-muted">
+        <p class="whitespace-pre-wrap text-sm text-slate-500 dark:text-slate-400">
           {{ item.content }}
         </p>
-        <p class="mt-3 text-xs text-muted">
+        <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">
           {{ formatDateTime(item.published_at) }}
         </p>
-      </article>
+      </PanelCard>
     </div>
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 definePageMeta({
+  layout: 'auth',
   middleware: 'guest'
 })
 
@@ -13,38 +14,32 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-[radial-gradient(ellipse_at_top,_rgba(14,165,233,0.12),_transparent_50%)] px-4">
-    <div class="w-full max-w-lg text-center">
-      <div class="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-primary text-inverted shadow-lg shadow-primary/30">
-        <UIcon
-          name="i-lucide-building-2"
-          class="size-8"
-        />
-      </div>
-      <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
-        Apartman Yönetim Sistemi
-      </h1>
-      <p class="mx-auto mt-3 max-w-md text-muted">
-        Aidat, ödeme, gider, duyuru ve arıza bildirimlerini tek panelden yönetin.
-      </p>
-      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <UButton
-          to="/login"
-          size="lg"
-          icon="i-lucide-log-in"
-        >
-          Giriş Yap
-        </UButton>
-        <UButton
-          to="/register"
-          size="lg"
-          color="neutral"
-          variant="outline"
-          icon="i-lucide-user-plus"
-        >
-          Kayıt Ol
-        </UButton>
-      </div>
+  <div class="ays-rise w-full max-w-3xl text-center">
+    <p class="font-display text-5xl font-semibold tracking-tight text-ink sm:text-6xl md:text-7xl">
+      Apartman
+      <span class="block text-accent">Yönetim Sistemi</span>
+    </p>
+    <p class="ays-rise-delay mx-auto mt-5 max-w-xl text-base text-muted-ink sm:text-lg">
+      Aidat, ödeme, gider, duyuru ve arıza bildirimlerini tek panelden yönetin.
+    </p>
+    <div class="ays-rise-delay mt-10 flex flex-wrap items-center justify-center gap-3">
+      <UButton
+        to="/login"
+        size="xl"
+        icon="i-lucide-log-in"
+      >
+        Giriş Yap
+      </UButton>
+      <UButton
+        to="/register"
+        size="xl"
+        color="neutral"
+        variant="outline"
+        class="border-line"
+        icon="i-lucide-user-plus"
+      >
+        Kayıt Ol
+      </UButton>
     </div>
   </div>
 </template>

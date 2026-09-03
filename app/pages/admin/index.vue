@@ -15,37 +15,37 @@ const statCards = computed(() => [
     title: 'Toplam Daire',
     value: String(stats.value.totalApartments),
     icon: 'i-lucide-building-2',
-    tone: 'info' as const
+    critical: false
   },
   {
     title: 'Toplanan Aidat',
     value: formatCurrency(stats.value.collectedDues),
     icon: 'i-lucide-circle-check',
-    tone: 'success' as const
+    critical: false
   },
   {
     title: 'Bekleyen Aidat',
     value: formatCurrency(stats.value.pendingDues),
     icon: 'i-lucide-clock-3',
-    tone: 'warning' as const
+    critical: stats.value.pendingDues > 0
   },
   {
     title: 'Toplam Gider',
     value: formatCurrency(stats.value.totalExpenses),
     icon: 'i-lucide-trending-down',
-    tone: 'error' as const
+    critical: false
   },
   {
     title: 'Net Bakiye',
     value: formatCurrency(stats.value.netBalance),
     icon: 'i-lucide-wallet',
-    tone: 'default' as const
+    critical: stats.value.netBalance < 0
   },
   {
     title: 'Açık Arıza',
     value: String(stats.value.openMaintenance),
     icon: 'i-lucide-wrench',
-    tone: 'warning' as const
+    critical: stats.value.openMaintenance > 0
   }
 ])
 </script>
@@ -60,7 +60,8 @@ const statCards = computed(() => [
         <UButton
           icon="i-lucide-refresh-cw"
           color="neutral"
-          variant="soft"
+          variant="outline"
+          class="border-line"
           :loading="pending"
           @click="fetchDashboard"
         >
@@ -79,67 +80,70 @@ const statCards = computed(() => [
     <LoadingState v-else-if="pending && !recentPayments.length" />
 
     <template v-else>
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard
           v-for="card in statCards"
           :key="card.title"
-          v-bind="card"
+          :title="card.title"
+          :value="card.value"
+          :icon="card.icon"
+          :critical="card.critical"
         />
       </div>
 
-      <div class="mt-6 grid gap-6 xl:grid-cols-5">
-        <div class="rounded-2xl border border-default bg-default p-5 shadow-sm xl:col-span-3">
-          <div class="mb-4">
-            <h2 class="text-lg font-semibold">
+      <div class="mt-6 grid gap-4 xl:grid-cols-5">
+        <PanelCard class="xl:col-span-3">
+          <template #header>
+            <h2 class="font-display text-lg font-semibold text-ink">
               Aylık Gelir - Gider
             </h2>
-            <p class="text-sm text-muted">
+            <p class="text-sm text-muted-ink">
               Son dönem karşılaştırması
             </p>
-          </div>
+          </template>
           <IncomeExpenseChart :data="chartData" />
-        </div>
+        </PanelCard>
 
-        <div class="rounded-2xl border border-default bg-default p-5 shadow-sm xl:col-span-2">
-          <div class="mb-4">
-            <h2 class="text-lg font-semibold">
+        <PanelCard class="xl:col-span-2">
+          <template #header>
+            <h2 class="font-display text-lg font-semibold text-ink">
               Son Ödemeler
             </h2>
-            <p class="text-sm text-muted">
+            <p class="text-sm text-muted-ink">
               En güncel tahsilatlar
             </p>
-          </div>
+          </template>
 
           <EmptyState
             v-if="!recentPayments.length"
-            title="Ödeme yok"
-            description="Henüz kayıtlı ödeme bulunmuyor."
-            icon="i-lucide-wallet"
+            quiet
+            message="Henüz veri yok — ilk kaydı ekleyin."
           />
 
           <ul
             v-else
-            class="space-y-3"
+            class="space-y-0"
           >
             <li
-              v-for="payment in recentPayments"
+              v-for="(payment, index) in recentPayments"
               :key="payment.id"
-              class="flex items-center justify-between gap-3 rounded-xl bg-elevated/60 px-3 py-3"
+              class="flex items-center justify-between gap-3 py-3"
+              :class="index < recentPayments.length - 1 ? 'border-b border-line' : ''"
             >
               <div>
-                <p class="text-sm font-medium">
+                <p class="text-sm font-medium text-ink">
                   {{ apartmentLabel(payment.apartment) }}
                 </p>
-                <p class="text-xs text-muted">
+                <p class="text-xs text-muted-ink">
                   {{ formatDate(payment.payment_date) }} · {{ paymentMethodLabels[payment.method] }}
                 </p>
               </div>
-              <p class="text-sm font-semibold text-success">
+              <p class="text-sm font-semibold text-ink">
                 {{ formatCurrency(payment.amount) }}
               </p>
             </li>
           </ul>
-        </div>
+        </PanelCard>
       </div>
     </template>
   </div>

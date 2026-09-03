@@ -34,42 +34,41 @@ onMounted(fetchMine)
       v-else
       class="grid gap-4 md:grid-cols-2"
     >
-      <div
+      <PanelCard
         v-for="item in items"
         :key="item.id"
-        class="rounded-2xl border border-default bg-default p-5 shadow-sm"
       >
         <div class="mb-4 flex items-center gap-3">
-          <div class="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <div class="flex size-11 items-center justify-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
             <UIcon
               name="i-lucide-door-open"
               class="size-5"
             />
           </div>
           <div>
-            <h2 class="text-lg font-semibold">
+            <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
               {{ apartmentLabel(item) }}
             </h2>
-            <p class="text-sm text-muted">
+            <p class="text-sm text-slate-500 dark:text-slate-400">
               Kat {{ item.floor }}
             </p>
           </div>
         </div>
         <dl class="space-y-2 text-sm">
           <div class="flex justify-between gap-3">
-            <dt class="text-muted">
+            <dt class="text-slate-500 dark:text-slate-400">
               Alan
             </dt>
             <dd>{{ item.area_m2 ? `${item.area_m2} m²` : '—' }}</dd>
           </div>
           <div class="flex justify-between gap-3">
-            <dt class="text-muted">
+            <dt class="text-slate-500 dark:text-slate-400">
               Blok
             </dt>
             <dd>{{ item.block || '—' }}</dd>
           </div>
           <div class="flex justify-between gap-3">
-            <dt class="text-muted">
+            <dt class="text-slate-500 dark:text-slate-400">
               Not
             </dt>
             <dd class="text-right">
@@ -77,7 +76,7 @@ onMounted(fetchMine)
             </dd>
           </div>
         </dl>
-      </div>
+      </PanelCard>
     </div>
   </div>
 </template>

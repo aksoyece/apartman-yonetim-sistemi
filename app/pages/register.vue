@@ -7,7 +7,7 @@ definePageMeta({
   middleware: 'guest'
 })
 
-const { signUp, loading } = useAuth()
+const { signUp, loading, homePathForRole } = useAuth()
 
 const schema = z.object({
   full_name: z.string().min(2, 'Ad soyad en az 2 karakter olmalı'),
@@ -33,33 +33,30 @@ const roleItems = [
 ]
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  const ok = await signUp({
+  const result = await signUp({
     email: event.data.email,
     password: event.data.password,
     full_name: event.data.full_name,
     phone: event.data.phone,
     role: event.data.role
   })
-  if (ok) {
-    await navigateTo('/login')
+
+  if (!result) return
+
+  if (result.signedIn && result.profile) {
+    await navigateTo(homePathForRole(result.profile.role), { replace: true })
+    return
   }
+
+  await navigateTo('/login')
 }
 </script>
 
 <template>
-  <div class="w-full max-w-md rounded-3xl border border-white/10 bg-white/95 p-6 text-slate-900 shadow-2xl backdrop-blur dark:bg-slate-900/90 dark:text-white sm:p-8">
-    <div class="mb-6">
-      <p class="text-sm font-medium text-sky-600 dark:text-sky-400">
-        Apartman YS
-      </p>
-      <h1 class="mt-1 text-2xl font-semibold">
-        Kayıt Ol
-      </h1>
-      <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Yeni hesap oluşturun. İlk yönetici hesabını buradan açabilirsiniz.
-      </p>
-    </div>
-
+  <AuthShell
+    title="Kayıt Ol"
+    description="Yeni hesap oluşturun. İlk yönetici hesabını buradan açabilirsiniz."
+  >
     <UForm
       :schema="schema"
       :state="state"
@@ -73,6 +70,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       >
         <UInput
           v-model="state.full_name"
+          size="lg"
           placeholder="Ad Soyad"
           icon="i-lucide-user"
           class="w-full"
@@ -87,35 +85,40 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <UInput
           v-model="state.email"
           type="email"
+          size="lg"
           placeholder="ornek@mail.com"
           icon="i-lucide-mail"
           class="w-full"
         />
       </UFormField>
 
-      <UFormField
-        label="Telefon"
-        name="phone"
-      >
-        <UInput
-          v-model="state.phone"
-          placeholder="05xx xxx xx xx"
-          icon="i-lucide-phone"
-          class="w-full"
-        />
-      </UFormField>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <UFormField
+          label="Telefon"
+          name="phone"
+        >
+          <UInput
+            v-model="state.phone"
+            size="lg"
+            placeholder="05xx xxx xx xx"
+            icon="i-lucide-phone"
+            class="w-full"
+          />
+        </UFormField>
 
-      <UFormField
-        label="Rol"
-        name="role"
-        required
-      >
-        <USelect
-          v-model="state.role"
-          :items="roleItems"
-          class="w-full"
-        />
-      </UFormField>
+        <UFormField
+          label="Rol"
+          name="role"
+          required
+        >
+          <USelect
+            v-model="state.role"
+            size="lg"
+            :items="roleItems"
+            class="w-full"
+          />
+        </UFormField>
+      </div>
 
       <UFormField
         label="Şifre"
@@ -125,6 +128,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <UInput
           v-model="state.password"
           type="password"
+          size="lg"
           placeholder="••••••••"
           icon="i-lucide-lock"
           class="w-full"
@@ -135,20 +139,21 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         type="submit"
         block
         size="lg"
+        class="mt-2"
         :loading="loading"
       >
         Kayıt Ol
       </UButton>
     </UForm>
 
-    <p class="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+    <p class="mt-6 text-sm text-slate-500 dark:text-slate-400">
       Zaten hesabınız var mı?
       <NuxtLink
         to="/login"
-        class="font-medium text-sky-600 hover:underline dark:text-sky-400"
+        class="font-medium text-accent hover:underline"
       >
         Giriş yapın
       </NuxtLink>
     </p>
-  </div>
+  </AuthShell>
 </template>
