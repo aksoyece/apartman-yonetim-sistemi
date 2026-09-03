@@ -28,6 +28,10 @@ const links = [{
   icon: 'i-lucide-megaphone',
   to: '/admin/announcements'
 }, {
+  label: 'Anketler',
+  icon: 'i-lucide-vote',
+  to: '/admin/surveys'
+}, {
   label: 'Arıza Bildirimleri',
   icon: 'i-lucide-wrench',
   to: '/admin/maintenance'

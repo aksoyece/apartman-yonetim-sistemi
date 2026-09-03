@@ -3,6 +3,7 @@ export type DueStatus = 'pending' | 'paid' | 'overdue' | 'partial'
 export type PaymentMethod = 'cash' | 'transfer' | 'credit_card' | 'other'
 export type MaintenanceStatus = 'open' | 'in_progress' | 'resolved' | 'closed'
 export type PriorityLevel = 'low' | 'normal' | 'high'
+export type SurveyStatus = 'draft' | 'open' | 'closed'
 
 export interface Profile {
   id: string
@@ -92,6 +93,38 @@ export interface MaintenanceRequest {
   updated_at: string
   apartment?: Apartment | null
   reporter?: Profile | null
+}
+
+export interface SurveyOption {
+  id: string
+  survey_id: string
+  label: string
+  sort_order: number
+  created_at: string
+  vote_count?: number
+}
+
+export interface SurveyVote {
+  id: string
+  survey_id: string
+  option_id: string
+  user_id: string
+  created_at: string
+}
+
+export interface Survey {
+  id: string
+  title: string
+  description: string | null
+  status: SurveyStatus
+  ends_at: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+  options?: SurveyOption[]
+  votes?: SurveyVote[]
+  my_vote_option_id?: string | null
+  total_votes?: number
 }
 
 export interface DashboardStats {

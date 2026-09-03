@@ -20,6 +20,10 @@ const links = [{
   icon: 'i-lucide-megaphone',
   to: '/resident/announcements'
 }, {
+  label: 'Anketler',
+  icon: 'i-lucide-vote',
+  to: '/resident/surveys'
+}, {
   label: 'Arıza Bildirimi',
   icon: 'i-lucide-wrench',
   to: '/resident/maintenance'

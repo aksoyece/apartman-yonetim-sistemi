@@ -16,4 +16,8 @@ export function clearAppCaches() {
   useState('announcements-pending', () => false).value = false
   useState<string | null>('announcements-error', () => null).value = null
   useState<boolean | null>('announcements-include-inactive', () => null).value = null
+
+  useState('surveys-items', () => []).value = []
+  useState('surveys-pending', () => true).value = true
+  useState<string | null>('surveys-error', () => null).value = null
 }

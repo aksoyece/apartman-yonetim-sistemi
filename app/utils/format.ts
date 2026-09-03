@@ -1,4 +1,4 @@
-import type { DueStatus, MaintenanceStatus, PaymentMethod, PriorityLevel, UserRole } from '~/types/database'
+import type { DueStatus, MaintenanceStatus, PaymentMethod, PriorityLevel, SurveyStatus, UserRole } from '~/types/database'
 
 export function formatCurrency(value: number | null | undefined, currency = 'TRY') {
   const amount = Number(value ?? 0)
@@ -118,6 +118,18 @@ export const priorityColors: Record<PriorityLevel, 'neutral' | 'info' | 'error'>
   low: 'neutral',
   normal: 'info',
   high: 'error'
+}
+
+export const surveyStatusLabels: Record<SurveyStatus, string> = {
+  draft: 'Taslak',
+  open: 'Açık',
+  closed: 'Kapalı'
+}
+
+export const surveyStatusColors: Record<SurveyStatus, 'neutral' | 'success' | 'warning'> = {
+  draft: 'neutral',
+  open: 'success',
+  closed: 'warning'
 }
 
 export const expenseCategories = [
