@@ -62,6 +62,7 @@ export interface Expense {
   expense_date: string
   description: string | null
   created_by: string | null
+  attachment_path: string | null
   created_at: string
 }
 
@@ -85,6 +86,7 @@ export interface MaintenanceRequest {
   status: MaintenanceStatus
   priority: PriorityLevel
   admin_notes: string | null
+  attachment_path: string | null
   resolved_at: string | null
   created_at: string
   updated_at: string

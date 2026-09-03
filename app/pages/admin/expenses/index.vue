@@ -9,9 +9,13 @@ definePageMeta({
 })
 
 const { items, pending, error, fetchAll, create, update, remove } = useExpenses()
+const { upload, uploading } = useAttachmentUpload()
+const { exportCsv, exportPdf } = useExport()
 const open = ref(false)
 const editing = ref<Expense | null>(null)
 const saving = ref(false)
+const exporting = ref(false)
+const attachment = ref<File | null>(null)
 
 const schema = z.object({
   title: z.string().min(2, 'Başlık gerekli'),
@@ -43,6 +47,7 @@ function resetForm() {
   state.category = 'genel'
   state.expense_date = new Date().toISOString().slice(0, 10)
   state.description = ''
+  attachment.value = null
 }
 
 function openCreate() {
@@ -57,17 +62,27 @@ function openEdit(expense: Expense) {
   state.category = expense.category
   state.expense_date = expense.expense_date
   state.description = expense.description ?? ''
+  attachment.value = null
   open.value = true
 }
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   saving.value = true
+  let attachment_path = editing.value?.attachment_path ?? null
+  if (attachment.value) {
+    attachment_path = await upload(attachment.value, 'expenses')
+    if (!attachment_path) {
+      saving.value = false
+      return
+    }
+  }
   const payload = {
     title: event.data.title,
     amount: event.data.amount,
     category: event.data.category,
     expense_date: event.data.expense_date,
-    description: event.data.description || null
+    description: event.data.description || null,
+    attachment_path
   }
   const ok = editing.value
     ? await update(editing.value.id, payload)
@@ -84,6 +99,49 @@ async function onDelete(id: string) {
   await remove(id)
 }
 
+async function onExportCsv() {
+  exporting.value = true
+  exportCsv(
+    items.value.map(i => ({
+      baslik: i.title,
+      kategori: i.category,
+      tutar: i.amount,
+      tarih: i.expense_date,
+      aciklama: i.description || ''
+    })),
+    [
+      { key: 'baslik', label: 'Baslik' },
+      { key: 'kategori', label: 'Kategori' },
+      { key: 'tutar', label: 'Tutar' },
+      { key: 'tarih', label: 'Tarih' },
+      { key: 'aciklama', label: 'Aciklama' }
+    ],
+    `giderler-${new Date().toISOString().slice(0, 10)}`
+  )
+  exporting.value = false
+}
+
+async function onExportPdf() {
+  exporting.value = true
+  await exportPdf(
+    'Gider Listesi',
+    [
+      { header: 'Baslik', dataKey: 'baslik' },
+      { header: 'Kategori', dataKey: 'kategori' },
+      { header: 'Tutar', dataKey: 'tutar' },
+      { header: 'Tarih', dataKey: 'tarih' }
+    ],
+    items.value.map(i => ({
+      baslik: i.title,
+      kategori: i.category,
+      tutar: formatCurrency(i.amount),
+      tarih: formatDate(i.expense_date)
+    })),
+    `giderler-${new Date().toISOString().slice(0, 10)}`
+  )
+  exporting.value = false
+}
+
 onMounted(fetchAll)
 </script>
 
@@ -94,6 +152,12 @@ onMounted(fetchAll)
       description="Apartman ortak giderlerini kaydedin ve takip edin."
     >
       <template #actions>
+        <ExportButtons
+          :loading="exporting"
+          :disabled="!items.length"
+          @csv="onExportCsv"
+          @pdf="onExportPdf"
+        />
         <UButton
           icon="i-lucide-plus"
           @click="openCreate"
@@ -267,6 +331,12 @@ onMounted(fetchAll)
                 class="w-full"
               />
             </UFormField>
+            <FileUploadField
+              v-if="!editing"
+              v-model="attachment"
+              label="Fatura / belge (opsiyonel)"
+              hint="JPG, PNG, WEBP veya PDF · max 5MB"
+            />
             <div class="flex justify-end gap-2">
               <UButton
                 color="neutral"
@@ -277,7 +347,7 @@ onMounted(fetchAll)
               </UButton>
               <UButton
                 type="submit"
-                :loading="saving"
+                :loading="saving || uploading"
               >
                 Kaydet
               </UButton>

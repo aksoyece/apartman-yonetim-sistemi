@@ -50,12 +50,14 @@ export function useMaintenance() {
     title: string
     description: string
     priority?: PriorityLevel
+    attachment_path?: string | null
   }) {
     const { error: insertError } = await supabase.from('maintenance_requests').insert({
       ...payload,
       reporter_id: user.value?.id,
       priority: payload.priority ?? 'normal',
-      status: 'open'
+      status: 'open',
+      attachment_path: payload.attachment_path ?? null
     })
     if (insertError) {
       toast.add({ title: 'Arıza bildirilemedi', description: getErrorMessage(insertError), color: 'error' })

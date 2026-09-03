@@ -112,7 +112,10 @@ watch(() => route.fullPath, () => {
               Portal
             </p>
           </div>
-          <UColorModeButton />
+          <div class="flex items-center gap-1">
+            <NotificationBell />
+            <UColorModeButton />
+          </div>
         </header>
 
         <main class="flex-1 p-4 lg:p-6">

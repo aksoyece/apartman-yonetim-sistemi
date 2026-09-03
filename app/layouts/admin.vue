@@ -34,6 +34,10 @@ const links = [{
   label: 'Arıza Bildirimleri',
   icon: 'i-lucide-wrench',
   to: '/admin/maintenance'
+}, {
+  label: 'Raporlar',
+  icon: 'i-lucide-bar-chart-3',
+  to: '/admin/reports'
 }]
 
 const open = ref(false)
@@ -120,7 +124,10 @@ watch(() => route.fullPath, () => {
               Yönetim
             </p>
           </div>
-          <UColorModeButton />
+          <div class="flex items-center gap-1">
+            <NotificationBell />
+            <UColorModeButton />
+          </div>
         </header>
 
         <main class="flex-1 p-4 lg:p-6">

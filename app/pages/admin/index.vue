@@ -7,6 +7,8 @@ definePageMeta({
 const { stats, chartData, recentPayments, pending, error, fetchDashboard } = useDashboard()
 
 onMounted(fetchDashboard)
+useRealtimeChannel('admin-dashboard-payments', 'payments', fetchDashboard)
+useRealtimeChannel('admin-dashboard-maintenance', 'maintenance_requests', fetchDashboard)
 
 const statCards = computed(() => [
   {

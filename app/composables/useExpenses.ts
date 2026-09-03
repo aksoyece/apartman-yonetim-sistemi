@@ -32,10 +32,12 @@ export function useExpenses() {
     category: string
     expense_date: string
     description?: string | null
+    attachment_path?: string | null
   }) {
     const { error: insertError } = await supabase.from('expenses').insert({
       ...payload,
-      created_by: user.value?.id ?? null
+      created_by: user.value?.id ?? null,
+      attachment_path: payload.attachment_path ?? null
     })
     if (insertError) {
       toast.add({ title: 'Gider eklenemedi', description: getErrorMessage(insertError), color: 'error' })

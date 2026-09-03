@@ -7,6 +7,7 @@ definePageMeta({
 })
 
 const { items, pending, error, fetchAll, updateStatus } = useMaintenance()
+const { getSignedUrl } = useAttachmentUpload()
 const open = ref(false)
 const selected = ref<MaintenanceRequest | null>(null)
 const saving = ref(false)
@@ -30,7 +31,13 @@ async function saveStatus() {
   if (ok) open.value = false
 }
 
+async function openAttachment(path: string | null | undefined) {
+  const url = await getSignedUrl(path)
+  if (url) window.open(url, '_blank')
+}
+
 onMounted(fetchAll)
+useRealtimeChannel('admin-maintenance', 'maintenance_requests', fetchAll)
 </script>
 
 <template>
@@ -108,6 +115,17 @@ onMounted(fetchAll)
             >
               <span class="font-medium">Yönetici notu:</span> {{ item.admin_notes }}
             </p>
+            <UButton
+              v-if="item.attachment_path"
+              class="mt-3"
+              size="sm"
+              color="neutral"
+              variant="soft"
+              icon="i-lucide-paperclip"
+              @click="openAttachment(item.attachment_path)"
+            >
+              Ek dosyayı aç
+            </UButton>
           </div>
           <UButton
             icon="i-lucide-refresh-cw"

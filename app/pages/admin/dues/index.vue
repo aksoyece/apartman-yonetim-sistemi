@@ -10,10 +10,12 @@ definePageMeta({
 
 const { items, pending, error, fetchAll, create, update, remove } = useDues()
 const { items: apartments, fetchAll: fetchApartments } = useApartments()
+const { exportCsv, exportPdf } = useExport()
 
 const open = ref(false)
 const editing = ref<Due | null>(null)
 const saving = ref(false)
+const exporting = ref(false)
 
 const schema = z.object({
   apartment_id: z.string().min(1, 'Daire seçin'),
@@ -92,6 +94,51 @@ async function onDelete(id: string) {
   await remove(id)
 }
 
+async function onExportCsv() {
+  exporting.value = true
+  exportCsv(
+    items.value.map(i => ({
+      daire: apartmentLabel(i.apartment),
+      donem: i.period,
+      tutar: i.amount,
+      vade: i.due_date,
+      durum: dueStatusLabels[i.status]
+    })),
+    [
+      { key: 'daire', label: 'Daire' },
+      { key: 'donem', label: 'Donem' },
+      { key: 'tutar', label: 'Tutar' },
+      { key: 'vade', label: 'Vade' },
+      { key: 'durum', label: 'Durum' }
+    ],
+    `aidatlar-${new Date().toISOString().slice(0, 10)}`
+  )
+  exporting.value = false
+}
+
+async function onExportPdf() {
+  exporting.value = true
+  await exportPdf(
+    'Aidat Listesi',
+    [
+      { header: 'Daire', dataKey: 'daire' },
+      { header: 'Donem', dataKey: 'donem' },
+      { header: 'Tutar', dataKey: 'tutar' },
+      { header: 'Vade', dataKey: 'vade' },
+      { header: 'Durum', dataKey: 'durum' }
+    ],
+    items.value.map(i => ({
+      daire: apartmentLabel(i.apartment),
+      donem: i.period,
+      tutar: formatCurrency(i.amount),
+      vade: formatDate(i.due_date),
+      durum: dueStatusLabels[i.status]
+    })),
+    `aidatlar-${new Date().toISOString().slice(0, 10)}`
+  )
+  exporting.value = false
+}
+
 onMounted(async () => {
   await Promise.all([fetchAll(), fetchApartments()])
 })
@@ -104,6 +151,12 @@ onMounted(async () => {
       description="Daire bazlı aidat borçlarını oluşturun ve takip edin."
     >
       <template #actions>
+        <ExportButtons
+          :loading="exporting"
+          :disabled="!items.length"
+          @csv="onExportCsv"
+          @pdf="onExportPdf"
+        />
         <UButton
           icon="i-lucide-plus"
           @click="openCreate"

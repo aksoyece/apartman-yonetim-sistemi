@@ -11,9 +11,11 @@ definePageMeta({
 const { items, pending, error, fetchAll, create, remove } = usePayments()
 const { items: apartments, fetchAll: fetchApartments } = useApartments()
 const { items: dues, fetchAll: fetchDues } = useDues()
+const { exportCsv, exportPdf } = useExport()
 
 const open = ref(false)
 const saving = ref(false)
+const exporting = ref(false)
 
 const schema = z.object({
   apartment_id: z.string().min(1, 'Daire seçin'),
@@ -82,6 +84,49 @@ async function onDelete(id: string) {
   await remove(id)
 }
 
+async function onExportCsv() {
+  exporting.value = true
+  exportCsv(
+    items.value.map(i => ({
+      daire: apartmentLabel(i.apartment),
+      tutar: i.amount,
+      tarih: i.payment_date,
+      yontem: paymentMethodLabels[i.method],
+      not: i.notes || ''
+    })),
+    [
+      { key: 'daire', label: 'Daire' },
+      { key: 'tutar', label: 'Tutar' },
+      { key: 'tarih', label: 'Tarih' },
+      { key: 'yontem', label: 'Yontem' },
+      { key: 'not', label: 'Not' }
+    ],
+    `odemeler-${new Date().toISOString().slice(0, 10)}`
+  )
+  exporting.value = false
+}
+
+async function onExportPdf() {
+  exporting.value = true
+  await exportPdf(
+    'Odeme Listesi',
+    [
+      { header: 'Daire', dataKey: 'daire' },
+      { header: 'Tutar', dataKey: 'tutar' },
+      { header: 'Tarih', dataKey: 'tarih' },
+      { header: 'Yontem', dataKey: 'yontem' }
+    ],
+    items.value.map(i => ({
+      daire: apartmentLabel(i.apartment),
+      tutar: formatCurrency(i.amount),
+      tarih: formatDate(i.payment_date),
+      yontem: paymentMethodLabels[i.method]
+    })),
+    `odemeler-${new Date().toISOString().slice(0, 10)}`
+  )
+  exporting.value = false
+}
+
 onMounted(async () => {
   await Promise.all([fetchAll(), fetchApartments(), fetchDues()])
 })
@@ -94,6 +139,12 @@ onMounted(async () => {
       description="Tahsilatları kaydedin ve aidat durumunu güncelleyin."
     >
       <template #actions>
+        <ExportButtons
+          :loading="exporting"
+          :disabled="!items.length"
+          @csv="onExportCsv"
+          @pdf="onExportPdf"
+        />
         <UButton
           icon="i-lucide-plus"
           @click="open = true"

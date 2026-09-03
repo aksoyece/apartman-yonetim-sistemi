@@ -10,9 +10,11 @@ definePageMeta({
 
 const { items: apartments, fetchMine } = useApartments()
 const { items, pending, error, fetchMine: fetchMaintenance, create } = useMaintenance()
+const { upload, uploading, getSignedUrl } = useAttachmentUpload()
 
 const open = ref(false)
 const saving = ref(false)
+const attachment = ref<File | null>(null)
 
 const schema = z.object({
   apartment_id: z.string().min(1, 'Daire seçin'),
@@ -38,14 +40,28 @@ const priorityItems = Object.entries(priorityLabels).map(([value, label]) => ({ 
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   saving.value = true
-  const ok = await create(event.data)
+  let attachment_path: string | null = null
+  if (attachment.value) {
+    attachment_path = await upload(attachment.value, 'maintenance')
+    if (!attachment_path) {
+      saving.value = false
+      return
+    }
+  }
+  const ok = await create({ ...event.data, attachment_path })
   saving.value = false
   if (ok) {
     open.value = false
     state.title = ''
     state.description = ''
     state.priority = 'normal'
+    attachment.value = null
   }
+}
+
+async function openAttachment(path: string | null | undefined) {
+  const url = await getSignedUrl(path)
+  if (url) window.open(url, '_blank')
 }
 
 onMounted(async () => {
@@ -55,6 +71,8 @@ onMounted(async () => {
   }
   await fetchMaintenance()
 })
+
+useRealtimeChannel('resident-maintenance', 'maintenance_requests', fetchMaintenance)
 </script>
 
 <template>
@@ -147,6 +165,17 @@ onMounted(async () => {
         >
           <span class="font-medium">Yönetici notu:</span> {{ item.admin_notes }}
         </p>
+        <UButton
+          v-if="item.attachment_path"
+          class="mt-3"
+          size="sm"
+          color="neutral"
+          variant="soft"
+          icon="i-lucide-paperclip"
+          @click="openAttachment(item.attachment_path)"
+        >
+          Ek dosyayı aç
+        </UButton>
       </article>
     </div>
 
@@ -205,6 +234,11 @@ onMounted(async () => {
                 class="w-full"
               />
             </UFormField>
+            <FileUploadField
+              v-model="attachment"
+              label="Fotoğraf / belge (opsiyonel)"
+              hint="JPG, PNG, WEBP veya PDF · max 5MB"
+            />
             <div class="flex justify-end gap-2">
               <UButton
                 color="neutral"
@@ -215,7 +249,7 @@ onMounted(async () => {
               </UButton>
               <UButton
                 type="submit"
-                :loading="saving"
+                :loading="saving || uploading"
               >
                 Gönder
               </UButton>
