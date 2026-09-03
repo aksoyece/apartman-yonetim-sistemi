@@ -28,9 +28,12 @@ export function useDues() {
   async function fetchByApartmentIds(apartmentIds: string[]) {
     if (!apartmentIds.length) {
       items.value = []
+      pending.value = false
+      error.value = null
       return
     }
-    pending.value = true
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
     error.value = null
     try {
       const { data, error: fetchError } = await supabase

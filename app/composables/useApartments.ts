@@ -3,9 +3,11 @@ import type { Apartment, Profile } from '~/types/database'
 export function useApartments() {
   const supabase = useDb()
   const toast = useToast()
-  const items = ref<(Apartment & { owner?: Profile | null })[]>([])
-  const pending = ref(false)
-  const error = ref<string | null>(null)
+  // Sayfalar arası paylaşılan önbellek — menü değişince boş ekran olmasın
+  const items = useState<(Apartment & { owner?: Profile | null })[]>('apartments-items', () => [])
+  const pending = useState('apartments-pending', () => false)
+  const error = useState<string | null>('apartments-error', () => null)
+  const mineReady = useState('apartments-mine-ready', () => false)
 
   async function fetchAll() {
     pending.value = true
@@ -66,15 +68,30 @@ export function useApartments() {
     return true
   }
 
+  async function resolveOwnerId(maxWaitMs = 12000): Promise<string | null> {
+    const { resolveSession } = useAuth()
+    const { userId } = await resolveSession(maxWaitMs)
+    return userId
+  }
+
   async function fetchMine() {
-    pending.value = true
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
     error.value = null
+    mineReady.value = false
+
     try {
-      const user = useSupabaseUser()
+      const ownerId = await resolveOwnerId()
+      if (!ownerId) {
+        // Oturum yok — uyarı ancak ready sonrası gösterilsin
+        if (!hadItems) items.value = []
+        return
+      }
+
       const { data, error: fetchError } = await supabase
         .from('apartments')
         .select('*')
-        .eq('owner_id', user.value?.id ?? '')
+        .eq('owner_id', ownerId)
         .order('number')
 
       if (fetchError) throw fetchError
@@ -83,6 +100,7 @@ export function useApartments() {
       error.value = getErrorMessage(err)
     } finally {
       pending.value = false
+      mineReady.value = true
     }
   }
 
@@ -90,6 +108,7 @@ export function useApartments() {
     items,
     pending,
     error,
+    mineReady,
     fetchAll,
     fetchMine,
     create,

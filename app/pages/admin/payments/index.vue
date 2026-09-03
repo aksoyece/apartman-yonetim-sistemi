@@ -118,7 +118,7 @@ async function onExportPdf() {
     ],
     items.value.map(i => ({
       daire: apartmentLabel(i.apartment),
-      tutar: formatCurrency(i.amount),
+      tutar: formatCurrencyPdf(i.amount),
       tarih: formatDate(i.payment_date),
       yontem: paymentMethodLabels[i.method]
     })),

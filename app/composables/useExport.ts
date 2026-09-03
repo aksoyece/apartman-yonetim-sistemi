@@ -40,16 +40,17 @@ export function useExport() {
     const autoTable = (await import('jspdf-autotable')).default
 
     const doc = new jsPDF({ orientation: 'landscape' })
+    doc.setFont('helvetica', 'normal')
     doc.setFontSize(14)
-    doc.text(title, 14, 16)
+    doc.text(pdfSafeText(title), 14, 16)
     doc.setFontSize(10)
-    doc.text(`Olusturulma: ${new Date().toLocaleString('tr-TR')}`, 14, 23)
+    doc.text(pdfSafeText(`Olusturulma: ${new Date().toLocaleString('tr-TR')}`), 14, 23)
 
     autoTable(doc, {
       startY: 28,
-      head: [columns.map(c => c.header)],
-      body: rows.map(row => columns.map(c => String(row[c.dataKey] ?? ''))),
-      styles: { fontSize: 8 }
+      head: [columns.map(c => pdfSafeText(c.header))],
+      body: rows.map(row => columns.map(c => pdfSafeText(row[c.dataKey]))),
+      styles: { font: 'helvetica', fontSize: 8 }
     })
 
     doc.save(filename.endsWith('.pdf') ? filename : `${filename}.pdf`)

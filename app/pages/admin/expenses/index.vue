@@ -9,13 +9,18 @@ definePageMeta({
 })
 
 const { items, pending, error, fetchAll, create, update, remove } = useExpenses()
-const { upload, uploading } = useAttachmentUpload()
+const { upload, uploading, getSignedUrl } = useAttachmentUpload()
 const { exportCsv, exportPdf } = useExport()
 const open = ref(false)
 const editing = ref<Expense | null>(null)
 const saving = ref(false)
 const exporting = ref(false)
 const attachment = ref<File | null>(null)
+
+async function openAttachment(path: string | null | undefined) {
+  const url = await getSignedUrl(path)
+  if (url) window.open(url, '_blank')
+}
 
 const schema = z.object({
   title: z.string().min(2, 'Başlık gerekli'),
@@ -134,7 +139,7 @@ async function onExportPdf() {
     items.value.map(i => ({
       baslik: i.title,
       kategori: i.category,
-      tutar: formatCurrency(i.amount),
+      tutar: formatCurrencyPdf(i.amount),
       tarih: formatDate(i.expense_date)
     })),
     `giderler-${new Date().toISOString().slice(0, 10)}`
@@ -240,6 +245,15 @@ onMounted(fetchAll)
             <td class="px-4 py-3">
               <div class="flex justify-end gap-1">
                 <UButton
+                  v-if="item.attachment_path"
+                  icon="i-lucide-paperclip"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  title="Faturayı aç"
+                  @click="openAttachment(item.attachment_path)"
+                />
+                <UButton
                   icon="i-lucide-pencil"
                   color="neutral"
                   variant="ghost"
@@ -326,10 +340,28 @@ onMounted(fetchAll)
                 class="w-full"
               />
             </UFormField>
+            <div
+              v-if="editing?.attachment_path"
+              class="rounded-lg border border-default bg-elevated/50 px-3 py-2"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-sm text-muted">
+                  Kayıtlı fatura / belge var
+                </p>
+                <UButton
+                  size="sm"
+                  color="neutral"
+                  variant="soft"
+                  icon="i-lucide-paperclip"
+                  @click="openAttachment(editing.attachment_path)"
+                >
+                  Aç
+                </UButton>
+              </div>
+            </div>
             <FileUploadField
-              v-if="!editing"
               v-model="attachment"
-              label="Fatura / belge (opsiyonel)"
+              :label="editing?.attachment_path ? 'Yeni fatura / belge (opsiyonel)' : 'Fatura / belge (opsiyonel)'"
               hint="JPG, PNG, WEBP veya PDF · max 5MB"
             />
             <div class="flex justify-end gap-2">

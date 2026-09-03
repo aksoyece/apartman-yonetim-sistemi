@@ -6,6 +6,9 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase'
   ],
 
+  // Panel uygulaması — SSR auth yarışını kaldır, oturumu istemcide tut
+  ssr: false,
+
   devtools: {
     enabled: true
   },

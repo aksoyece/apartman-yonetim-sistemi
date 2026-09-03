@@ -3,13 +3,14 @@ import type { MaintenanceRequest, MaintenanceStatus, PriorityLevel } from '~/typ
 export function useMaintenance() {
   const supabase = useDb()
   const toast = useToast()
-  const { user } = useAuth()
-  const items = ref<MaintenanceRequest[]>([])
-  const pending = ref(false)
-  const error = ref<string | null>(null)
+  const { user, profile, resolveSession, ensureSession } = useAuth()
+  const items = useState<MaintenanceRequest[]>('maintenance-items', () => [])
+  const pending = useState('maintenance-pending', () => false)
+  const error = useState<string | null>('maintenance-error', () => null)
 
   async function fetchAll() {
-    pending.value = true
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
     error.value = null
     try {
       const { data, error: fetchError } = await supabase
@@ -27,13 +28,21 @@ export function useMaintenance() {
   }
 
   async function fetchMine() {
-    pending.value = true
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
     error.value = null
     try {
+      const { userId } = await resolveSession()
+      const reporterId = userId || user.value?.id || profile.value?.id
+      if (!reporterId) {
+        if (!hadItems) items.value = []
+        return
+      }
+
       const { data, error: fetchError } = await supabase
         .from('maintenance_requests')
         .select('*, apartment:apartments(*), reporter:profiles(*)')
-        .eq('reporter_id', user.value?.id ?? '')
+        .eq('reporter_id', reporterId)
         .order('created_at', { ascending: false })
 
       if (fetchError) throw fetchError
@@ -52,17 +61,53 @@ export function useMaintenance() {
     priority?: PriorityLevel
     attachment_path?: string | null
   }) {
-    const { error: insertError } = await supabase.from('maintenance_requests').insert({
-      ...payload,
-      reporter_id: user.value?.id,
-      priority: payload.priority ?? 'normal',
-      status: 'open',
-      attachment_path: payload.attachment_path ?? null
-    })
-    if (insertError) {
-      toast.add({ title: 'Arıza bildirilemedi', description: getErrorMessage(insertError), color: 'error' })
+    await ensureSession()
+    const { session, userId } = await resolveSession()
+    const reporterId = userId || user.value?.id || profile.value?.id
+
+    if (!reporterId) {
+      toast.add({
+        title: 'Arıza bildirilemedi',
+        description: 'Oturum bulunamadı. Lütfen tekrar giriş yapın.',
+        color: 'error'
+      })
       return false
     }
+
+    if (!session) {
+      // JWT yoksa RPC auth.uid() çalışmaz — oturumu bir kez daha zorla
+      const authClient = useSupabaseClient()
+      await authClient.auth.refreshSession()
+    }
+
+    const { error: rpcError } = await supabase.rpc('resident_create_maintenance', {
+      p_apartment_id: payload.apartment_id,
+      p_title: payload.title,
+      p_description: payload.description,
+      p_priority: payload.priority ?? 'normal',
+      p_attachment_path: payload.attachment_path ?? null
+    })
+
+    if (rpcError) {
+      const { error: insertError } = await supabase.from('maintenance_requests').insert({
+        apartment_id: payload.apartment_id,
+        title: payload.title,
+        description: payload.description,
+        reporter_id: reporterId,
+        priority: payload.priority ?? 'normal',
+        status: 'open',
+        attachment_path: payload.attachment_path ?? null
+      })
+        if (insertError) {
+        toast.add({
+          title: 'Arıza bildirilemedi',
+          description: getErrorMessage(insertError),
+          color: 'error'
+        })
+        return false
+      }
+    }
+
     toast.add({ title: 'Arıza bildirimi oluşturuldu', color: 'success', icon: 'i-lucide-check' })
     await fetchMine()
     return true

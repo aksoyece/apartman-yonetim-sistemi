@@ -101,9 +101,9 @@ onMounted(() => fetchAll(true))
       :message="error"
       @retry="() => fetchAll(true)"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="pending && !items.length" />
     <EmptyState
-      v-else-if="!items.length"
+      v-else-if="!pending && !items.length"
       title="Duyuru yok"
       description="Toplantı, kesinti veya genel bilgilendirmeleri yayınlayın."
       icon="i-lucide-megaphone"
@@ -119,7 +119,7 @@ onMounted(() => fetchAll(true))
     </EmptyState>
 
     <div
-      v-else
+      v-else-if="items.length"
       class="space-y-4"
     >
       <PanelCard

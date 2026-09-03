@@ -4,7 +4,7 @@ definePageMeta({
   middleware: 'resident'
 })
 
-const { items, pending, error, fetchMine } = useApartments()
+const { items, pending, error, fetchMine, mineReady } = useApartments()
 
 onMounted(fetchMine)
 </script>
@@ -22,7 +22,7 @@ onMounted(fetchMine)
       :message="error"
       @retry="fetchMine"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="pending || !mineReady" />
     <EmptyState
       v-else-if="!items.length"
       title="Atanmış daire yok"

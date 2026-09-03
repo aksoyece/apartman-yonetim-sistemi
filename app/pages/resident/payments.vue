@@ -4,13 +4,19 @@ definePageMeta({
   middleware: 'resident'
 })
 
-const { items: apartments, fetchMine } = useApartments()
+const { items: apartments, fetchMine, pending: aptPending, mineReady } = useApartments()
 const { items, pending, error, fetchByApartmentIds } = usePayments()
 
-onMounted(async () => {
+const loading = computed(() => aptPending.value || pending.value || !mineReady.value)
+
+async function load() {
   await fetchMine()
-  await fetchByApartmentIds(apartments.value.map(a => a.id))
-})
+  if (apartments.value.length) {
+    await fetchByApartmentIds(apartments.value.map(a => a.id))
+  }
+}
+
+onMounted(load)
 </script>
 
 <template>
@@ -24,13 +30,19 @@ onMounted(async () => {
       v-if="error"
       class="mb-6"
       :message="error"
-      @retry="() => fetchByApartmentIds(apartments.map(a => a.id))"
+      @retry="load"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="loading" />
+    <EmptyState
+      v-else-if="!apartments.length"
+      title="Atanmış daire yok"
+      description="Ödeme geçmişi için yöneticinin sizi bir daireye ataması gerekir."
+      icon="i-lucide-door-open"
+    />
     <EmptyState
       v-else-if="!items.length"
       title="Ödeme geçmişi boş"
-      description="Yönetici ödeme kaydettiğinde burada listelenir."
+      description="Yönetici veya siz ödeme kaydettiğinizde burada listelenir."
       icon="i-lucide-wallet"
     />
 

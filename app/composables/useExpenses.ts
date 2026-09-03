@@ -34,9 +34,11 @@ export function useExpenses() {
     description?: string | null
     attachment_path?: string | null
   }) {
+    const { resolveSession } = useAuth()
+    const { userId } = await resolveSession()
     const { error: insertError } = await supabase.from('expenses').insert({
       ...payload,
-      created_by: user.value?.id ?? null,
+      created_by: userId || user.value?.id || null,
       attachment_path: payload.attachment_path ?? null
     })
     if (insertError) {

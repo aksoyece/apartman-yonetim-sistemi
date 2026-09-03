@@ -112,11 +112,11 @@ async function exportSummaryPdf() {
         { header: 'Deger', dataKey: 'deger' }
       ],
       [
-        { metrik: 'Toplam Gelir', deger: formatCurrency(summary.value.income) },
-        { metrik: 'Toplam Gider', deger: formatCurrency(summary.value.expenseTotal) },
-        { metrik: 'Net Bakiye', deger: formatCurrency(summary.value.net) },
-        { metrik: 'Bekleyen Aidat', deger: formatCurrency(summary.value.pendingDues) },
-        { metrik: 'Odenen Aidat', deger: formatCurrency(summary.value.paidDues) }
+        { metrik: 'Toplam Gelir', deger: formatCurrencyPdf(summary.value.income) },
+        { metrik: 'Toplam Gider', deger: formatCurrencyPdf(summary.value.expenseTotal) },
+        { metrik: 'Net Bakiye', deger: formatCurrencyPdf(summary.value.net) },
+        { metrik: 'Bekleyen Aidat', deger: formatCurrencyPdf(summary.value.pendingDues) },
+        { metrik: 'Odenen Aidat', deger: formatCurrencyPdf(summary.value.paidDues) }
       ],
       `rapor-ozet-${new Date().toISOString().slice(0, 10)}`
     )

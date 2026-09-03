@@ -22,16 +22,16 @@ onMounted(() => fetchAll(false))
       :message="error"
       @retry="() => fetchAll(false)"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="pending && !items.length" />
     <EmptyState
-      v-else-if="!items.length"
+      v-else-if="!pending && !items.length"
       title="Aktif duyuru yok"
       description="Yeni duyurular yayınlandığında burada görünecek."
       icon="i-lucide-megaphone"
     />
 
     <div
-      v-else
+      v-else-if="items.length"
       class="space-y-4"
     >
       <PanelCard

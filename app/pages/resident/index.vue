@@ -5,12 +5,12 @@ definePageMeta({
 })
 
 const { profile } = useAuth()
-const { items: apartments, fetchMine, pending: aptPending } = useApartments()
+const { items: apartments, fetchMine, pending: aptPending, mineReady } = useApartments()
 const { items: dues, fetchByApartmentIds, pending: duesPending } = useDues()
 const { items: announcements, fetchAll: fetchAnnouncements } = useAnnouncements()
 const { items: maintenance, fetchMine: fetchMaintenance } = useMaintenance()
 
-const pending = computed(() => aptPending.value || duesPending.value)
+const pending = computed(() => aptPending.value || duesPending.value || !mineReady.value)
 
 const pendingDuesTotal = computed(() =>
   dues.value
@@ -34,7 +34,7 @@ onMounted(async () => {
   await fetchMine()
   const ids = apartments.value.map(a => a.id)
   await Promise.all([
-    fetchByApartmentIds(ids),
+    ids.length ? fetchByApartmentIds(ids) : Promise.resolve(),
     fetchAnnouncements(false),
     fetchMaintenance()
   ])
@@ -48,7 +48,7 @@ onMounted(async () => {
       :description="`${profile?.full_name || 'Kat maliki'}, dairenize ait özet bilgiler.`"
     />
 
-    <LoadingState v-if="pending" />
+    <LoadingState v-if="pending && !apartments.length && !dues.length" />
 
     <template v-else>
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -150,13 +150,13 @@ onMounted(async () => {
                 <p class="text-sm font-semibold text-slate-900 dark:text-white">
                   {{ formatCurrency(item.amount) }}
                 </p>
-                <UBadge
-                  :color="dueStatusColors[item.status]"
-                  variant="subtle"
-                  size="sm"
+                <UButton
+                  size="xs"
+                  class="mt-1"
+                  to="/resident/dues"
                 >
-                  {{ dueStatusLabels[item.status] }}
-                </UBadge>
+                  Öde
+                </UButton>
               </div>
             </li>
           </ul>

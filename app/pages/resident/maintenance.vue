@@ -8,13 +8,14 @@ definePageMeta({
   middleware: 'resident'
 })
 
-const { items: apartments, fetchMine } = useApartments()
+const { items: apartments, fetchMine, pending: aptPending, mineReady } = useApartments()
 const { items, pending, error, fetchMine: fetchMaintenance, create } = useMaintenance()
 const { upload, uploading, getSignedUrl } = useAttachmentUpload()
 
 const open = ref(false)
 const saving = ref(false)
 const attachment = ref<File | null>(null)
+const bootstrapping = computed(() => aptPending.value || !mineReady.value)
 
 const schema = z.object({
   apartment_id: z.string().min(1, 'Daire seçin'),
@@ -72,6 +73,12 @@ onMounted(async () => {
   await fetchMaintenance()
 })
 
+watch(apartments, (list) => {
+  if (list[0] && !state.apartment_id) {
+    state.apartment_id = list[0].id
+  }
+}, { deep: true })
+
 useRealtimeChannel('resident-maintenance', 'maintenance_requests', fetchMaintenance)
 </script>
 
@@ -84,7 +91,7 @@ useRealtimeChannel('resident-maintenance', 'maintenance_requests', fetchMaintena
       <template #actions>
         <UButton
           icon="i-lucide-plus"
-          :disabled="!apartments.length"
+          :disabled="bootstrapping || !apartments.length"
           @click="open = true"
         >
           Yeni Bildirim
@@ -92,8 +99,13 @@ useRealtimeChannel('resident-maintenance', 'maintenance_requests', fetchMaintena
       </template>
     </PageHeader>
 
+    <LoadingState
+      v-if="bootstrapping"
+      class="mb-6"
+    />
+
     <UAlert
-      v-if="!apartments.length && !pending"
+      v-else-if="!apartments.length"
       class="mb-6"
       color="warning"
       variant="subtle"
@@ -108,9 +120,9 @@ useRealtimeChannel('resident-maintenance', 'maintenance_requests', fetchMaintena
       :message="error"
       @retry="fetchMaintenance"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="pending && !items.length" />
     <EmptyState
-      v-else-if="!items.length"
+      v-else-if="!pending && !items.length && !bootstrapping"
       title="Bildirim yok"
       description="İlk arıza bildiriminizi oluşturabilirsiniz."
       icon="i-lucide-wrench"

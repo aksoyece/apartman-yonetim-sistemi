@@ -9,6 +9,36 @@ export function formatCurrency(value: number | null | undefined, currency = 'TRY
   }).format(amount)
 }
 
+/** jsPDF Helvetica ₺/Unicode bozar — export için ASCII güvenli tutar */
+export function formatCurrencyPdf(value: number | null | undefined) {
+  const amount = Number(value ?? 0)
+  const formatted = new Intl.NumberFormat('tr-TR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount)
+  return `${formatted} TL`
+}
+
+/** jsPDF varsayılan fontunda sorun çıkaran karakterleri sadeleştir */
+export function pdfSafeText(value: unknown) {
+  return String(value ?? '')
+    .replace(/₺/g, '')
+    .replace(/\u00A0/g, ' ')
+    .replace(/İ/g, 'I')
+    .replace(/ı/g, 'i')
+    .replace(/Ş/g, 'S')
+    .replace(/ş/g, 's')
+    .replace(/Ğ/g, 'G')
+    .replace(/ğ/g, 'g')
+    .replace(/Ü/g, 'U')
+    .replace(/ü/g, 'u')
+    .replace(/Ö/g, 'O')
+    .replace(/ö/g, 'o')
+    .replace(/Ç/g, 'C')
+    .replace(/ç/g, 'c')
+    .trim()
+}
+
 export function formatDate(value: string | Date | null | undefined) {
   if (!value) return '—'
   const date = typeof value === 'string' ? new Date(value) : value

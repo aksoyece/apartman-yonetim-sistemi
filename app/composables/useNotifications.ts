@@ -11,7 +11,7 @@ export interface AppNotification {
 export function useNotifications() {
   const supabase = useDb()
   const toast = useToast()
-  const { user } = useAuth()
+  const { resolveSession } = useAuth()
   const items = ref<AppNotification[]>([])
   const pending = ref(false)
   const error = ref<string | null>(null)
@@ -19,7 +19,8 @@ export function useNotifications() {
   const unreadCount = computed(() => items.value.filter(n => !n.is_read).length)
 
   async function fetchAll() {
-    if (!user.value) {
+    const { userId } = await resolveSession()
+    if (!userId) {
       items.value = []
       return
     }
@@ -29,7 +30,7 @@ export function useNotifications() {
       const { data, error: fetchError } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.value.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(40)
 
@@ -57,11 +58,12 @@ export function useNotifications() {
   }
 
   async function markAllRead() {
-    if (!user.value) return
+    const { userId } = await resolveSession()
+    if (!userId) return
     const { error: updateError } = await supabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('user_id', user.value.id)
+      .eq('user_id', userId)
       .eq('is_read', false)
 
     if (updateError) {
@@ -72,33 +74,44 @@ export function useNotifications() {
   }
 
   function subscribeRealtime() {
-    if (!user.value) return () => {}
+    let stopped = false
+    let unsubscribe: (() => void) | null = null
 
-    const channel = useSupabaseClient()
-      .channel(`notifications-${user.value.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.value.id}`
-        },
-        (payload) => {
-          const row = payload.new as AppNotification
-          items.value = [row, ...items.value]
-          toast.add({
-            title: row.title,
-            description: row.body || undefined,
-            color: 'info',
-            icon: 'i-lucide-bell'
-          })
-        }
-      )
-      .subscribe()
+    ;(async () => {
+      const { userId } = await resolveSession()
+      if (!userId || stopped) return
+
+      const channel = useSupabaseClient()
+        .channel(`notifications-${userId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload) => {
+            const row = payload.new as AppNotification
+            items.value = [row, ...items.value]
+            toast.add({
+              title: row.title,
+              description: row.body || undefined,
+              color: 'info',
+              icon: 'i-lucide-bell'
+            })
+          }
+        )
+        .subscribe()
+
+      unsubscribe = () => {
+        useSupabaseClient().removeChannel(channel)
+      }
+    })()
 
     return () => {
-      useSupabaseClient().removeChannel(channel)
+      stopped = true
+      unsubscribe?.()
     }
   }
 

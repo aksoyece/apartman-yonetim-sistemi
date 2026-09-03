@@ -130,7 +130,7 @@ async function onExportPdf() {
     items.value.map(i => ({
       daire: apartmentLabel(i.apartment),
       donem: i.period,
-      tutar: formatCurrency(i.amount),
+      tutar: formatCurrencyPdf(i.amount),
       vade: formatDate(i.due_date),
       durum: dueStatusLabels[i.status]
     })),

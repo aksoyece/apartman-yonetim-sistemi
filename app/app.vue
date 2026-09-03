@@ -23,17 +23,18 @@ useSeoMeta({
 
 const { user, profile, fetchProfile } = useAuth()
 
+// Geçici user=null dalgalanmasında profili silme — sadece gerçek çıkışta temizlenir
 watch(user, async (value) => {
   if (value?.id) {
-    await fetchProfile(value.id)
-  } else if (!value) {
-    profile.value = null
+    if (!profile.value || profile.value.id !== value.id) {
+      await fetchProfile(value.id)
+    }
   }
 }, { immediate: true })
 </script>
 
 <template>
-  <UApp>
+  <UApp :toaster="{ duration: 1800 }">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
