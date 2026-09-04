@@ -1,6 +1,14 @@
 import type { Profile, UserRole } from '~/types/database'
 import { getErrorMessage } from '~/utils/format'
 
+type AuthUserLike = {
+  id?: string
+  sub?: string
+  email?: string | null
+  created_at?: string
+  user_metadata?: Record<string, unknown>
+}
+
 export function useAuth() {
   const supabase = useDb()
   const authClient = useSupabaseClient()
@@ -13,13 +21,14 @@ export function useAuth() {
   const isAdmin = computed(() => profile.value?.role === 'admin')
   const isResident = computed(() => profile.value?.role === 'resident')
 
-  function profileFromUser(current: any): Profile {
+  function profileFromUser(current: AuthUserLike): Profile {
     const meta = current.user_metadata || {}
+    const id = current.id || current.sub || ''
     return {
-      id: current.id,
-      full_name: meta.full_name || current.email?.split('@')[0] || 'Kullanıcı',
+      id,
+      full_name: (meta.full_name as string | undefined) || current.email?.split('@')[0] || 'Kullanıcı',
       email: current.email || null,
-      phone: meta.phone || null,
+      phone: (meta.phone as string | null | undefined) || null,
       role: (meta.role as UserRole) || 'resident',
       created_at: current.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -48,11 +57,11 @@ export function useAuth() {
     }
   }
 
-  async function waitForUser(_timeoutMs = 0): Promise<any> {
-    if (user.value) return user.value
+  async function waitForUser(_timeoutMs = 0): Promise<AuthUserLike | null> {
+    if (user.value) return user.value as AuthUserLike
     const { session, userId } = await resolveSession()
-    if (session?.user) return session.user
-    if (user.value) return user.value
+    if (session?.user) return session.user as AuthUserLike
+    if (user.value) return user.value as AuthUserLike
     const currentProfile = profile.value
     if (userId && currentProfile && currentProfile.id === userId) {
       return {
@@ -110,7 +119,7 @@ export function useAuth() {
     } catch (error) {
       console.error(error)
       if (!profile.value && user.value) {
-        profile.value = profileFromUser(user.value)
+        profile.value = profileFromUser(user.value as AuthUserLike)
       }
       return profile.value
     } finally {

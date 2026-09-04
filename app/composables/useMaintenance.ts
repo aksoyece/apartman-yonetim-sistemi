@@ -97,7 +97,7 @@ export function useMaintenance() {
         status: 'open',
         attachment_path: payload.attachment_path ?? null
       })
-        if (insertError) {
+      if (insertError) {
         toast.add({
           title: 'Arıza bildirilemedi',
           description: getErrorMessage(insertError),

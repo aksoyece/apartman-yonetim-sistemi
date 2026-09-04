@@ -21,11 +21,6 @@ export default defineNuxtConfig({
     }
   },
 
-  supabase: {
-    redirect: false,
-    types: false
-  },
-
   compatibilityDate: '2026-06-30',
 
   eslint: {
@@ -35,5 +30,10 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
+  },
+
+  supabase: {
+    redirect: false,
+    types: false
   }
 })

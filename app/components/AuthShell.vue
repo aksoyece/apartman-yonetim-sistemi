@@ -28,19 +28,28 @@ defineProps<{
       <ul class="space-y-3 text-sm text-muted-ink">
         <li class="flex items-center gap-3">
           <span class="flex size-8 items-center justify-center rounded-[5px] bg-soft text-ink">
-            <UIcon name="i-lucide-building-2" class="size-4" />
+            <UIcon
+              name="i-lucide-building-2"
+              class="size-4"
+            />
           </span>
           Daire ve kat maliki yönetimi
         </li>
         <li class="flex items-center gap-3">
           <span class="flex size-8 items-center justify-center rounded-[5px] bg-soft text-ink">
-            <UIcon name="i-lucide-wallet" class="size-4" />
+            <UIcon
+              name="i-lucide-wallet"
+              class="size-4"
+            />
           </span>
           Aidat, ödeme ve gider takibi
         </li>
         <li class="flex items-center gap-3">
           <span class="flex size-8 items-center justify-center rounded-[5px] bg-soft text-ink">
-            <UIcon name="i-lucide-bell" class="size-4" />
+            <UIcon
+              name="i-lucide-bell"
+              class="size-4"
+            />
           </span>
           Duyuru ve arıza bildirimleri
         </li>

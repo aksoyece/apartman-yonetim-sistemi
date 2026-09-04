@@ -36,9 +36,7 @@ async function openNotification(id: string, link: string | null) {
       color="error"
       size="xl"
       :ui="{
-        base: 'ring-2 ring-white dark:ring-[#1E2A38] font-bold shadow-sm',
-        background: 'bg-[#B33A3A]!',
-        color: 'text-white!'
+        base: 'ring-2 ring-white dark:ring-[#1E2A38] bg-[#B33A3A]! text-white! font-bold shadow-sm'
       }"
     >
       <UButton
