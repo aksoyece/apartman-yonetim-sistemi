@@ -7,7 +7,9 @@ useHead({
     {
       rel: 'stylesheet',
       href: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap'
-    }
+    },
+    { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+    { rel: 'apple-touch-icon', href: '/favicon.svg' }
   ],
   htmlAttrs: {
     lang: 'tr'
@@ -15,9 +17,9 @@ useHead({
 })
 
 useSeoMeta({
-  title: 'Apartman Yönetim Sistemi',
-  description: 'Nuxt, Vue 3, TypeScript, Nuxt UI ve Supabase ile apartman yönetimi.',
-  ogTitle: 'Apartman Yönetim Sistemi',
+  title: 'YönetiX — Apartman Yönetim Sistemi',
+  description: 'YönetiX ile aidat, ödeme, gider, duyuru, anket ve arıza süreçlerini tek panelden yönetin.',
+  ogTitle: 'YönetiX — Apartman Yönetim Sistemi',
   ogDescription: 'Modern, güvenli ve responsive apartman yönetim paneli.'
 })
 

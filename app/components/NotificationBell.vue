@@ -34,12 +34,18 @@ async function openNotification(id: string, link: string | null) {
       :show="unreadCount > 0"
       :text="unreadCount > 9 ? '9+' : String(unreadCount)"
       color="error"
-      size="sm"
+      size="xl"
+      :ui="{
+        base: 'ring-2 ring-white dark:ring-[#1E2A38] font-bold shadow-sm',
+        background: 'bg-[#B33A3A]!',
+        color: 'text-white!'
+      }"
     >
       <UButton
         color="neutral"
-        variant="ghost"
+        :variant="unreadCount > 0 ? 'soft' : 'ghost'"
         icon="i-lucide-bell"
+        :class="unreadCount > 0 ? 'text-[#B33A3A] dark:text-[#E8A0A0]' : ''"
         aria-label="Bildirimler"
       />
     </UChip>

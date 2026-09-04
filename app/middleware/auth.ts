@@ -1,10 +1,13 @@
 export default defineNuxtRouteMiddleware(async () => {
-  const { resolveSession, ensureSession, profile } = useAuth()
+  const user = useSupabaseUser()
+  const { ensureSession, profile } = useAuth()
 
-  const { userId } = await resolveSession()
-  if (!userId && !profile.value) {
+  if (!user.value?.id && !profile.value?.id) {
     return navigateTo('/login')
   }
 
-  await ensureSession()
+  const nextProfile = await ensureSession()
+  if (!nextProfile) {
+    return navigateTo('/login')
+  }
 })

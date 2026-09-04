@@ -8,6 +8,14 @@ export function clearAppCaches() {
   useState<string | null>('apartments-error', () => null).value = null
   useState('apartments-mine-ready', () => false).value = false
 
+  useState('dues-items', () => []).value = []
+  useState('dues-pending', () => false).value = false
+  useState<string | null>('dues-error', () => null).value = null
+
+  useState('payments-items', () => []).value = []
+  useState('payments-pending', () => false).value = false
+  useState<string | null>('payments-error', () => null).value = null
+
   useState('maintenance-items', () => []).value = []
   useState('maintenance-pending', () => false).value = false
   useState<string | null>('maintenance-error', () => null).value = null
@@ -18,6 +26,10 @@ export function clearAppCaches() {
   useState<boolean | null>('announcements-include-inactive', () => null).value = null
 
   useState('surveys-items', () => []).value = []
-  useState('surveys-pending', () => true).value = true
+  useState('surveys-pending', () => false).value = false
   useState<string | null>('surveys-error', () => null).value = null
+
+  useState('notifications-items', () => []).value = []
+  useState('notifications-pending', () => false).value = false
+  useState<string | null>('notifications-error', () => null).value = null
 }

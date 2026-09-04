@@ -172,7 +172,7 @@ onMounted(async () => {
       :message="error"
       @retry="fetchAll"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="pending && !items.length" />
     <EmptyState
       v-else-if="!items.length"
       title="Aidat kaydı yok"

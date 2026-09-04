@@ -20,8 +20,11 @@ function canVote(item: { status: string, ends_at: string | null }) {
 
 async function onVote(surveyId: string, optionId: string) {
   votingId.value = optionId
-  await vote(surveyId, optionId)
-  votingId.value = null
+  try {
+    await vote(surveyId, optionId)
+  } finally {
+    votingId.value = null
+  }
 }
 
 onMounted(() => fetchAll(false))
@@ -83,20 +86,22 @@ onMounted(() => fetchAll(false))
           <li
             v-for="option in item.options"
             :key="option.id"
-            class="rounded-md border border-line px-3 py-3"
-            :class="item.my_vote_option_id === option.id ? 'border-[var(--color-pine-600,#2F5D50)] bg-soft/60' : ''"
+            class="rounded-md border px-3 py-3"
+            :class="item.my_vote_option_id === option.id
+              ? 'border-[var(--ays-accent)] bg-[color-mix(in_srgb,var(--ays-accent)_14%,transparent)]'
+              : 'border-line'"
           >
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div class="min-w-0 flex-1">
                 <p class="font-medium text-ink">
                   {{ option.label }}
                 </p>
-                <p class="mt-1 text-xs text-muted-ink">
+                <p class="mt-1 text-xs font-medium !text-[#1E2A38] dark:!text-white">
                   {{ option.vote_count || 0 }} oy · %{{ percent(option.vote_count || 0, item.total_votes || 0) }}
                 </p>
                 <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
                   <div
-                    class="h-full rounded-full bg-[var(--color-pine-600,#2F5D50)]"
+                    class="h-full rounded-full bg-[var(--ays-accent)]"
                     :style="{ width: `${percent(option.vote_count || 0, item.total_votes || 0)}%` }"
                   />
                 </div>

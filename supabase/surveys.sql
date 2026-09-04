@@ -143,3 +143,36 @@ $$;
 
 revoke all on function public.resident_cast_vote(uuid, uuid) from public;
 grant execute on function public.resident_cast_vote(uuid, uuid) to authenticated;
+
+-- Anket açılınca kat maliklerine bildirim
+create or replace function public.on_survey_opened()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.status = 'open' and (tg_op = 'INSERT' or old.status is distinct from 'open') then
+    perform public.notify_residents(
+      'Yeni anket: ' || new.title,
+      coalesce(nullif(left(new.description, 160), ''), 'Oy vermek için anketlere gidin.'),
+      '/resident/surveys'
+    );
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists survey_open_notify_insert on public.surveys;
+create trigger survey_open_notify_insert
+  after insert on public.surveys
+  for each row
+  when (new.status = 'open')
+  execute function public.on_survey_opened();
+
+drop trigger if exists survey_open_notify_update on public.surveys;
+create trigger survey_open_notify_update
+  after update of status on public.surveys
+  for each row
+  when (new.status = 'open' and old.status is distinct from 'open')
+  execute function public.on_survey_opened();

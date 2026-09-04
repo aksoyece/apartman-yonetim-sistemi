@@ -65,7 +65,7 @@ useRealtimeChannel('admin-maintenance', 'maintenance_requests', fetchAll)
       :message="error"
       @retry="fetchAll"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="pending && !items.length" />
     <EmptyState
       v-else-if="!items.length"
       title="Açık arıza yok"

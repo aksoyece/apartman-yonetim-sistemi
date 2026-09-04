@@ -4,16 +4,16 @@ definePageMeta({
   middleware: 'resident'
 })
 
-const { items: apartments, fetchMine, pending: aptPending, mineReady } = useApartments()
-const { items, pending, error, fetchByApartmentIds } = usePayments()
+const { items: apartments, fetchMine: fetchApartments, pending: aptPending, mineReady } = useApartments()
+const { items, pending, error, fetchMine } = usePayments()
 
-const loading = computed(() => aptPending.value || pending.value || !mineReady.value)
+const loading = computed(() =>
+  ((aptPending.value || !mineReady.value) && !apartments.value.length)
+  || (pending.value && !items.value.length)
+)
 
-async function load() {
-  await fetchMine()
-  if (apartments.value.length) {
-    await fetchByApartmentIds(apartments.value.map(a => a.id))
-  }
+function load() {
+  void Promise.all([fetchApartments(), fetchMine()])
 }
 
 onMounted(load)
@@ -85,7 +85,7 @@ onMounted(load)
             <td class="px-4 py-3">
               {{ paymentMethodLabels[item.method] }}
             </td>
-            <td class="px-4 py-3">
+            <td class="px-4 py-3 text-slate-500 dark:text-slate-400">
               {{ item.notes || '—' }}
             </td>
           </tr>

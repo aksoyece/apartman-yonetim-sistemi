@@ -22,20 +22,10 @@ const state = reactive({
 })
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
+  // loading anında açılsın
   const nextProfile = await signIn(event.data.email, event.data.password)
-  if (!nextProfile) {
-    const user = useSupabaseUser()
-    if (user.value) {
-      useToast().add({
-        title: 'Profil bulunamadı',
-        description: 'Hesap oturumu açıldı fakat profil kaydı okunamadı. Sayfayı yenileyip tekrar deneyin.',
-        color: 'warning'
-      })
-    }
-    return
-  }
-
-  await navigateTo(homePathForRole(nextProfile.role), { replace: true })
+  if (!nextProfile) return
+  await navigateTo(homePathForRole(nextProfile.role), { replace: true, external: false })
 }
 </script>
 

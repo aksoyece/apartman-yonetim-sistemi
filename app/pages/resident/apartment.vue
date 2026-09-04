@@ -22,7 +22,7 @@ onMounted(fetchMine)
       :message="error"
       @retry="fetchMine"
     />
-    <LoadingState v-else-if="pending || !mineReady" />
+    <LoadingState v-else-if="(pending || !mineReady) && !items.length" />
     <EmptyState
       v-else-if="!items.length"
       title="Atanmış daire yok"

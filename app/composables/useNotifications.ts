@@ -11,20 +11,25 @@ export interface AppNotification {
 export function useNotifications() {
   const supabase = useDb()
   const toast = useToast()
-  const { resolveSession } = useAuth()
-  const items = ref<AppNotification[]>([])
-  const pending = ref(false)
-  const error = ref<string | null>(null)
+  const { profile, resolveSession } = useAuth()
+  const items = useState<AppNotification[]>('notifications-items', () => [])
+  const pending = useState('notifications-pending', () => false)
+  const error = useState<string | null>('notifications-error', () => null)
 
   const unreadCount = computed(() => items.value.filter(n => !n.is_read).length)
 
+  async function currentUserId() {
+    return profile.value?.id || (await resolveSession()).userId
+  }
+
   async function fetchAll() {
-    const { userId } = await resolveSession()
+    const userId = await currentUserId()
     if (!userId) {
       items.value = []
       return
     }
-    pending.value = true
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
     error.value = null
     try {
       const { data, error: fetchError } = await supabase
@@ -58,7 +63,7 @@ export function useNotifications() {
   }
 
   async function markAllRead() {
-    const { userId } = await resolveSession()
+    const userId = await currentUserId()
     if (!userId) return
     const { error: updateError } = await supabase
       .from('notifications')
@@ -78,7 +83,7 @@ export function useNotifications() {
     let unsubscribe: (() => void) | null = null
 
     ;(async () => {
-      const { userId } = await resolveSession()
+      const userId = await currentUserId()
       if (!userId || stopped) return
 
       const channel = useSupabaseClient()

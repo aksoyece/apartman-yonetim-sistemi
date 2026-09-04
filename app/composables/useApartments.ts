@@ -1,5 +1,7 @@
 import type { Apartment, Profile } from '~/types/database'
 
+let apartmentsMineInflight: Promise<void> | null = null
+
 export function useApartments() {
   const supabase = useDb()
   const toast = useToast()
@@ -10,7 +12,8 @@ export function useApartments() {
   const mineReady = useState('apartments-mine-ready', () => false)
 
   async function fetchAll() {
-    pending.value = true
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
     error.value = null
     try {
       const { data, error: fetchError } = await supabase
@@ -68,40 +71,48 @@ export function useApartments() {
     return true
   }
 
-  async function resolveOwnerId(maxWaitMs = 12000): Promise<string | null> {
-    const { resolveSession } = useAuth()
+  async function resolveOwnerId(maxWaitMs = 3000): Promise<string | null> {
+    const { profile, resolveSession } = useAuth()
+    if (profile.value?.id) return profile.value.id
     const { userId } = await resolveSession(maxWaitMs)
     return userId
   }
 
   async function fetchMine() {
-    const hadItems = items.value.length > 0
-    if (!hadItems) pending.value = true
-    error.value = null
-    mineReady.value = false
+    if (apartmentsMineInflight) return apartmentsMineInflight
 
-    try {
-      const ownerId = await resolveOwnerId()
-      if (!ownerId) {
-        // Oturum yok — uyarı ancak ready sonrası gösterilsin
-        if (!hadItems) items.value = []
-        return
+    apartmentsMineInflight = (async () => {
+      const hadItems = items.value.length > 0
+      if (!hadItems) pending.value = true
+      error.value = null
+      if (!hadItems) mineReady.value = false
+
+      try {
+        const ownerId = await resolveOwnerId()
+        if (!ownerId) {
+          if (!hadItems) items.value = []
+          return
+        }
+
+        const { data, error: fetchError } = await supabase
+          .from('apartments')
+          .select('*')
+          .eq('owner_id', ownerId)
+          .order('number')
+
+        if (fetchError) throw fetchError
+        items.value = (data ?? []) as Apartment[]
+      } catch (err) {
+        error.value = getErrorMessage(err)
+      } finally {
+        pending.value = false
+        mineReady.value = true
       }
+    })().finally(() => {
+      apartmentsMineInflight = null
+    })
 
-      const { data, error: fetchError } = await supabase
-        .from('apartments')
-        .select('*')
-        .eq('owner_id', ownerId)
-        .order('number')
-
-      if (fetchError) throw fetchError
-      items.value = (data ?? []) as Apartment[]
-    } catch (err) {
-      error.value = getErrorMessage(err)
-    } finally {
-      pending.value = false
-      mineReady.value = true
-    }
+    return apartmentsMineInflight
   }
 
   return {

@@ -32,8 +32,7 @@ export function useMaintenance() {
     if (!hadItems) pending.value = true
     error.value = null
     try {
-      const { userId } = await resolveSession()
-      const reporterId = userId || user.value?.id || profile.value?.id
+      const reporterId = profile.value?.id || user.value?.id || (await resolveSession()).userId
       if (!reporterId) {
         if (!hadItems) items.value = []
         return

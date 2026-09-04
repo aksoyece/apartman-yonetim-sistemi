@@ -12,12 +12,12 @@
 .dark {
   --ays-canvas: #141A21;
   --ays-ink: #F3F1EC;
-  --ays-muted: #9CA3AF;
-  --ays-line: #2C3642;
-  --ays-soft: #1E2732;
+  --ays-muted: #C5CDD8;
+  --ays-line: #3A4654;
+  --ays-soft: #243040;
   --ays-surface: #1A222C;
-  --ays-accent: #4A8A76;
-  --ays-danger: #D45A5A;
+  --ays-accent: #5BA08A;
+  --ays-danger: #E06B6B;
 }
 
 @keyframes ays-rise {
@@ -155,11 +155,11 @@
 .auth-shell :where(button, a[href]).inline-flex,
 .auth-card :where(button, a[href]).inline-flex {
   transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease !important;
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease !important;
 }
 
 .panel-shell :where(button, a[href]).inline-flex:hover:not(:disabled),
@@ -214,3 +214,25 @@
 .bg-surface { background: var(--ays-surface); }
 .bg-canvas { background: var(--ays-canvas); }
 .border-line { border-color: var(--ays-line); }
+
+/* Buton / kart / menü tıklanınca metin imleci (| ) görünmesin */
+body {
+  caret-color: transparent;
+}
+
+:where(button, a, [role="button"], [role="tab"], [role="menuitem"], [role="option"], summary) {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+:where(
+  input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select,
+  [contenteditable="true"],
+  [contenteditable=""]
+) {
+  caret-color: auto;
+  -webkit-user-select: text;
+  user-select: text;
+}

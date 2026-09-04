@@ -192,7 +192,7 @@ onMounted(async () => {
       </UFormField>
     </div>
 
-    <LoadingState v-if="pending" />
+    <LoadingState v-if="pending && !payments.length && !expenses.length && !dues.length" />
 
     <template v-else>
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

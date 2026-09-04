@@ -6,11 +6,16 @@ definePageMeta({
 
 const { profile } = useAuth()
 const { items: apartments, fetchMine, pending: aptPending, mineReady } = useApartments()
-const { items: dues, fetchByApartmentIds, pending: duesPending } = useDues()
+const { items: dues, fetchMine: fetchMyDues, pending: duesPending } = useDues()
 const { items: announcements, fetchAll: fetchAnnouncements } = useAnnouncements()
 const { items: maintenance, fetchMine: fetchMaintenance } = useMaintenance()
+const { items: surveys, fetchAll: fetchSurveys } = useSurveys()
 
-const pending = computed(() => aptPending.value || duesPending.value || !mineReady.value)
+const pending = computed(() =>
+  (aptPending.value && !apartments.value.length)
+  || (duesPending.value && !dues.value.length)
+  || (!mineReady.value && !apartments.value.length)
+)
 
 const pendingDuesTotal = computed(() =>
   dues.value
@@ -30,13 +35,24 @@ const openMaintenanceCount = computed(() =>
 
 const unpaidDues = computed(() => dues.value.filter(d => d.status !== 'paid').slice(0, 5))
 
-onMounted(async () => {
-  await fetchMine()
-  const ids = apartments.value.map(a => a.id)
-  await Promise.all([
-    ids.length ? fetchByApartmentIds(ids) : Promise.resolve(),
+const openSurveys = computed(() =>
+  surveys.value
+    .filter(s => s.status === 'open')
+    .slice(0, 4)
+)
+
+const pendingSurveyVotes = computed(() =>
+  surveys.value.filter(s => s.status === 'open' && !s.my_vote_option_id).length
+)
+
+onMounted(() => {
+  // Hepsi paralel — aidat daire listesini beklemez
+  void Promise.all([
+    fetchMine(),
+    fetchMyDues(),
     fetchAnnouncements(false),
-    fetchMaintenance()
+    fetchMaintenance(),
+    fetchSurveys(false)
   ])
 })
 </script>
@@ -51,7 +67,7 @@ onMounted(async () => {
     <LoadingState v-if="pending && !apartments.length && !dues.length" />
 
     <template v-else>
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard
           title="Dairelerim"
           :value="String(apartments.length)"
@@ -74,9 +90,15 @@ onMounted(async () => {
           icon="i-lucide-wrench"
           :critical="openMaintenanceCount > 0"
         />
+        <StatCard
+          title="Oy Bekleyen"
+          :value="String(pendingSurveyVotes)"
+          icon="i-lucide-vote"
+          :critical="pendingSurveyVotes > 0"
+        />
       </div>
 
-      <div class="mt-6 grid gap-6 lg:grid-cols-2">
+      <div class="mt-6 grid gap-6 lg:grid-cols-3">
         <PanelCard>
           <template #header>
             <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
@@ -113,6 +135,58 @@ onMounted(async () => {
               <p class="line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
                 {{ item.content }}
               </p>
+            </li>
+          </ul>
+        </PanelCard>
+
+        <PanelCard>
+          <template #header>
+            <div class="flex items-center justify-between gap-2">
+              <h2 class="font-display text-xl font-semibold text-slate-900 dark:text-white">
+                Açık Anketler
+              </h2>
+              <UButton
+                to="/resident/surveys"
+                size="xs"
+                color="neutral"
+                variant="ghost"
+              >
+                Tümü
+              </UButton>
+            </div>
+          </template>
+          <EmptyState
+            v-if="!openSurveys.length"
+            title="Açık anket yok"
+            description="Yeni anket açıldığında burada görünecek."
+            icon="i-lucide-vote"
+          />
+          <ul
+            v-else
+            class="space-y-2"
+          >
+            <li
+              v-for="item in openSurveys"
+              :key="item.id"
+              class="rounded-xl bg-slate-50 px-3 py-3 dark:bg-white/5"
+            >
+              <p class="font-medium text-slate-900 dark:text-white">
+                {{ item.title }}
+              </p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {{ item.total_votes || 0 }} oy
+                <span v-if="item.my_vote_option_id"> · Oyunuz kaydedildi</span>
+                <span v-else> · Oy vermediniz</span>
+              </p>
+              <UButton
+                class="mt-2"
+                size="xs"
+                :to="'/resident/surveys'"
+                :color="item.my_vote_option_id ? 'neutral' : 'primary'"
+                :variant="item.my_vote_option_id ? 'outline' : 'solid'"
+              >
+                {{ item.my_vote_option_id ? 'Sonuçları Gör' : 'Oy Ver' }}
+              </UButton>
             </li>
           </ul>
         </PanelCard>

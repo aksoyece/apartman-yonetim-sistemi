@@ -28,6 +28,20 @@ const links = [{
   icon: 'i-lucide-wrench',
   to: '/resident/maintenance'
 }]
+
+// Portal açılır açılmaz sık kullanılan veriyi ısıt
+const { fetchMine } = useApartments()
+const { fetchMine: fetchMyDues } = useDues()
+const { fetchMine: fetchMyPayments } = usePayments()
+const { fetchAll: fetchAnnouncements } = useAnnouncements()
+onMounted(() => {
+  void Promise.all([
+    fetchMine(),
+    fetchMyDues(),
+    fetchMyPayments(),
+    fetchAnnouncements(false)
+  ])
+})
 </script>
 
 <template>

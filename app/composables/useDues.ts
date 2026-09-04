@@ -1,14 +1,17 @@
 import type { Due, DueStatus } from '~/types/database'
 
+let duesMineInflight: Promise<void> | null = null
+
 export function useDues() {
   const supabase = useDb()
   const toast = useToast()
-  const items = ref<Due[]>([])
-  const pending = ref(false)
-  const error = ref<string | null>(null)
+  const items = useState<Due[]>('dues-items', () => [])
+  const pending = useState('dues-pending', () => false)
+  const error = useState<string | null>('dues-error', () => null)
 
   async function fetchAll() {
-    pending.value = true
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
     error.value = null
     try {
       const { data, error: fetchError } = await supabase
@@ -49,6 +52,42 @@ export function useDues() {
     } finally {
       pending.value = false
     }
+  }
+
+  /** Daire listesini beklemeden, oturumdaki malikin aidatlarını çeker */
+  async function fetchMine() {
+    if (duesMineInflight) return duesMineInflight
+
+    duesMineInflight = (async () => {
+      const hadItems = items.value.length > 0
+      if (!hadItems) pending.value = true
+      error.value = null
+      try {
+        const { profile, resolveSession } = useAuth()
+        const userId = profile.value?.id || (await resolveSession()).userId
+        if (!userId) {
+          if (!hadItems) items.value = []
+          return
+        }
+
+        const { data, error: fetchError } = await supabase
+          .from('dues')
+          .select('*, apartment:apartments!inner(*)')
+          .eq('apartment.owner_id', userId)
+          .order('due_date', { ascending: false })
+
+        if (fetchError) throw fetchError
+        items.value = (data ?? []) as Due[]
+      } catch (err) {
+        error.value = getErrorMessage(err)
+      } finally {
+        pending.value = false
+      }
+    })().finally(() => {
+      duesMineInflight = null
+    })
+
+    return duesMineInflight
   }
 
   async function create(payload: {
@@ -100,6 +139,7 @@ export function useDues() {
     error,
     fetchAll,
     fetchByApartmentIds,
+    fetchMine,
     create,
     update,
     remove

@@ -17,7 +17,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      appName: 'Apartman Yönetim Sistemi'
+      appName: 'YönetiX'
     }
   },
 

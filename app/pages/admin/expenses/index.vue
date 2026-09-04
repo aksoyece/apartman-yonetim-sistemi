@@ -178,7 +178,7 @@ onMounted(fetchAll)
       :message="error"
       @retry="fetchAll"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="pending && !items.length" />
     <EmptyState
       v-else-if="!items.length"
       title="Gider kaydı yok"

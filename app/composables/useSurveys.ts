@@ -23,9 +23,9 @@ function withResults(survey: Survey, userId?: string | null): Survey {
 export function useSurveys() {
   const supabase = useDb()
   const toast = useToast()
-  const { resolveSession } = useAuth()
+  const { profile, resolveSession } = useAuth()
   const items = useState<Survey[]>('surveys-items', () => [])
-  const pending = useState('surveys-pending', () => true)
+  const pending = useState('surveys-pending', () => false)
   const error = useState<string | null>('surveys-error', () => null)
 
   async function fetchAll(includeDraft = true) {
@@ -33,7 +33,7 @@ export function useSurveys() {
     if (!hadItems) pending.value = true
     error.value = null
     try {
-      const { userId } = await resolveSession()
+      const userId = profile.value?.id || (await resolveSession()).userId
       let query = supabase
         .from('surveys')
         .select('*, options:survey_options(*), votes:survey_votes(*)')
@@ -60,87 +60,107 @@ export function useSurveys() {
     ends_at?: string | null
     options: string[]
   }) {
-    const { userId } = await resolveSession()
-    const labels = payload.options.map(o => o.trim()).filter(Boolean)
-    if (labels.length < 2) {
-      toast.add({ title: 'En az 2 seçenek gerekli', color: 'error' })
+    try {
+      const userId = profile.value?.id || (await resolveSession()).userId
+      const labels = payload.options.map(o => o.trim()).filter(Boolean)
+      if (labels.length < 2) {
+        toast.add({ title: 'En az 2 seçenek gerekli', color: 'error' })
+        return false
+      }
+
+      const { data: survey, error: insertError } = await supabase
+        .from('surveys')
+        .insert({
+          title: payload.title,
+          description: payload.description || null,
+          status: payload.status ?? 'draft',
+          ends_at: payload.ends_at || null,
+          created_by: userId
+        })
+        .select('*')
+        .single()
+
+      if (insertError || !survey) {
+        toast.add({ title: 'Anket oluşturulamadı', description: getErrorMessage(insertError), color: 'error' })
+        return false
+      }
+
+      const optionRows = labels.map((label, index) => ({
+        survey_id: survey.id,
+        label,
+        sort_order: index
+      }))
+
+      const { error: optionsError } = await supabase.from('survey_options').insert(optionRows)
+      if (optionsError) {
+        await supabase.from('surveys').delete().eq('id', survey.id)
+        toast.add({ title: 'Seçenekler eklenemedi', description: getErrorMessage(optionsError), color: 'error' })
+        return false
+      }
+
+      toast.add({ title: 'Anket oluşturuldu', color: 'success', icon: 'i-lucide-check' })
+      await fetchAll(true)
+      return true
+    } catch (err) {
+      toast.add({ title: 'Anket oluşturulamadı', description: getErrorMessage(err), color: 'error' })
       return false
     }
-
-    const { data: survey, error: insertError } = await supabase
-      .from('surveys')
-      .insert({
-        title: payload.title,
-        description: payload.description || null,
-        status: payload.status ?? 'draft',
-        ends_at: payload.ends_at || null,
-        created_by: userId
-      })
-      .select('*')
-      .single()
-
-    if (insertError || !survey) {
-      toast.add({ title: 'Anket oluşturulamadı', description: getErrorMessage(insertError), color: 'error' })
-      return false
-    }
-
-    const optionRows = labels.map((label, index) => ({
-      survey_id: survey.id,
-      label,
-      sort_order: index
-    }))
-
-    const { error: optionsError } = await supabase.from('survey_options').insert(optionRows)
-    if (optionsError) {
-      await supabase.from('surveys').delete().eq('id', survey.id)
-      toast.add({ title: 'Seçenekler eklenemedi', description: getErrorMessage(optionsError), color: 'error' })
-      return false
-    }
-
-    toast.add({ title: 'Anket oluşturuldu', color: 'success', icon: 'i-lucide-check' })
-    await fetchAll(true)
-    return true
   }
 
   async function updateStatus(id: string, status: SurveyStatus) {
-    const { error: updateError } = await supabase
-      .from('surveys')
-      .update({ status })
-      .eq('id', id)
+    try {
+      const { error: updateError } = await supabase
+        .from('surveys')
+        .update({ status })
+        .eq('id', id)
 
-    if (updateError) {
-      toast.add({ title: 'Durum güncellenemedi', description: getErrorMessage(updateError), color: 'error' })
+      if (updateError) {
+        toast.add({ title: 'Durum güncellenemedi', description: getErrorMessage(updateError), color: 'error' })
+        return false
+      }
+      toast.add({ title: 'Anket durumu güncellendi', color: 'success', icon: 'i-lucide-check' })
+      await fetchAll(true)
+      return true
+    } catch (err) {
+      toast.add({ title: 'Durum güncellenemedi', description: getErrorMessage(err), color: 'error' })
       return false
     }
-    toast.add({ title: 'Anket durumu güncellendi', color: 'success', icon: 'i-lucide-check' })
-    await fetchAll(true)
-    return true
   }
 
   async function remove(id: string) {
-    const { error: deleteError } = await supabase.from('surveys').delete().eq('id', id)
-    if (deleteError) {
-      toast.add({ title: 'Silinemedi', description: getErrorMessage(deleteError), color: 'error' })
+    try {
+      const { error: deleteError } = await supabase.from('surveys').delete().eq('id', id)
+      if (deleteError) {
+        toast.add({ title: 'Silinemedi', description: getErrorMessage(deleteError), color: 'error' })
+        return false
+      }
+      toast.add({ title: 'Anket silindi', color: 'success', icon: 'i-lucide-check' })
+      await fetchAll(true)
+      return true
+    } catch (err) {
+      toast.add({ title: 'Silinemedi', description: getErrorMessage(err), color: 'error' })
       return false
     }
-    toast.add({ title: 'Anket silindi', color: 'success', icon: 'i-lucide-check' })
-    await fetchAll(true)
-    return true
   }
 
   async function vote(surveyId: string, optionId: string) {
-    await resolveSession()
-    const { error: rpcError } = await supabase.rpc('resident_cast_vote', {
-      p_survey_id: surveyId,
-      p_option_id: optionId
-    })
-    if (rpcError) {
-      toast.add({ title: 'Oy kullanılamadı', description: getErrorMessage(rpcError), color: 'error' })
+    try {
+      await resolveSession()
+      const { error: rpcError } = await supabase.rpc('resident_cast_vote', {
+        p_survey_id: surveyId,
+        p_option_id: optionId
+      })
+      if (rpcError) {
+        toast.add({ title: 'Oy kullanılamadı', description: getErrorMessage(rpcError), color: 'error' })
+        return false
+      }
+      toast.add({ title: 'Oyunuz kaydedildi', color: 'success', icon: 'i-lucide-check' })
+      await fetchAll(false)
+      return true
+    } catch (err) {
+      toast.add({ title: 'Oy kullanılamadı', description: getErrorMessage(err), color: 'error' })
       return false
     }
-    toast.add({ title: 'Oyunuz kaydedildi', color: 'success', icon: 'i-lucide-check' })
-    await fetchAll(false)
-    return true
   }
 
   return {

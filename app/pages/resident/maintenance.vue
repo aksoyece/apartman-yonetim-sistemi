@@ -15,7 +15,9 @@ const { upload, uploading, getSignedUrl } = useAttachmentUpload()
 const open = ref(false)
 const saving = ref(false)
 const attachment = ref<File | null>(null)
-const bootstrapping = computed(() => aptPending.value || !mineReady.value)
+const bootstrapping = computed(() =>
+  (aptPending.value || !mineReady.value) && !apartments.value.length
+)
 
 const schema = z.object({
   apartment_id: z.string().min(1, 'Daire seçin'),
@@ -65,12 +67,12 @@ async function openAttachment(path: string | null | undefined) {
   if (url) window.open(url, '_blank')
 }
 
-onMounted(async () => {
-  await fetchMine()
-  if (apartments.value[0]) {
-    state.apartment_id = apartments.value[0].id
-  }
-  await fetchMaintenance()
+onMounted(() => {
+  void Promise.all([fetchMine(), fetchMaintenance()]).then(() => {
+    if (apartments.value[0] && !state.apartment_id) {
+      state.apartment_id = apartments.value[0].id
+    }
+  })
 })
 
 watch(apartments, (list) => {

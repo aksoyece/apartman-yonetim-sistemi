@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 210" role="img" aria-label="YönetiX">
+  <title>YönetiX</title>
+  <defs>
+    <mask id="yonetix-mark">
+      <rect width="200" height="210" fill="#fff"/>
+      <!-- Y negative space -->
+      <path
+        fill="#000"
+        d="M94 42 L100 52 L106 42 L106 168 H94 Z
+           M94 42 L46 68 L56 80 L94 58 Z
+           M106 42 L154 68 L144 80 L106 58 Z"
+      />
+      <!-- People negative space -->
+      <circle cx="70" cy="120" r="7.5" fill="#000"/>
+      <path fill="#000" d="M54 150c0-11 7-18 16-18s16 7 16 18v10H54z"/>
+      <circle cx="130" cy="120" r="7.5" fill="#000"/>
+      <path fill="#000" d="M114 150c0-11 7-18 16-18s16 7 16 18v10h-32z"/>
+    </mask>
+  </defs>
+
+  <g mask="url(#yonetix-mark)">
+    <rect x="14" y="86" width="26" height="82" fill="#3B82C4"/>
+    <rect x="160" y="86" width="26" height="82" fill="#3B82C4"/>
+    <path fill="#3B82C4" d="M44 56 L94 28 L94 168 H44 Z"/>
+    <path fill="#3B82C4" d="M106 28 L156 56 L156 168 H106 Z"/>
+  </g>
+
+  <!-- Hexagon top: left blue, right teal -->
+  <path fill="#3B82C4" d="M100 8 L82 19 L82 41 L100 52 Z"/>
+  <path fill="#2DD4BF" d="M100 8 L118 19 L118 41 L100 52 Z"/>
+
+  <!-- Teal base -->
+  <path
+    fill="#2DD4BF"
+    d="M18 174 C50 190 78 190 94 174 v10 C72 198 46 198 18 184 Z"
+  />
+  <path
+    fill="#2DD4BF"
+    d="M182 174 C150 190 122 190 106 174 v10 C128 198 154 198 182 184 Z"
+  />
+</svg>

@@ -26,67 +26,31 @@ export function useAuth() {
     } as Profile
   }
 
-  /** JWT oturumunu zorla getir — yavaş ağ / hydration için */
-  async function resolveSession(maxWaitMs = 10000) {
-    const deadline = Date.now() + maxWaitMs
-
-    while (Date.now() < deadline) {
-      if (user.value?.id) {
-        const { data } = await authClient.auth.getSession()
-        if (data.session) {
-          return { session: data.session, userId: data.session.user.id }
-        }
-        return { session: null, userId: user.value.id }
-      }
-
-      try {
-        const { data } = await authClient.auth.getSession()
-        if (data.session?.user?.id) {
-          return { session: data.session, userId: data.session.user.id }
-        }
-      } catch {
-        // devam
-      }
-
-      try {
-        const { data } = await authClient.auth.refreshSession()
-        if (data.session?.user?.id) {
-          return { session: data.session, userId: data.session.user.id }
-        }
-      } catch {
-        // devam
-      }
-
-      if (profile.value?.id) {
-        // Profil var — JWT gelene kadar kısa bekle
-        await new Promise(r => setTimeout(r, 250))
-        try {
-          const { data } = await authClient.auth.getSession()
-          if (data.session?.user?.id) {
-            return { session: data.session, userId: data.session.user.id }
-          }
-        } catch {
-          // profil id ile devam (RPC için JWT şart olabilir)
-        }
-        return { session: null, userId: profile.value.id }
-      }
-
-      await new Promise(r => setTimeout(r, 300))
+  /** Oturum kimliğini hızlı çöz — poll yok, tek bakış */
+  async function resolveSession(_maxWaitMs = 0) {
+    const knownId = user.value?.id || profile.value?.id || null
+    if (knownId) {
+      return { session: null, userId: knownId }
     }
-
-    const fallbackId = user.value?.id || profile.value?.id || null
-    if (!fallbackId) return { session: null, userId: null }
 
     try {
       const { data } = await authClient.auth.getSession()
-      return { session: data.session, userId: data.session?.user?.id || fallbackId }
+      if (data.session?.user?.id) {
+        return { session: data.session, userId: data.session.user.id }
+      }
     } catch {
-      return { session: null, userId: fallbackId }
+      // yok
+    }
+
+    return {
+      session: null,
+      userId: user.value?.id || profile.value?.id || null
     }
   }
 
-  async function waitForUser(timeoutMs = 8000): Promise<any> {
-    const { session, userId } = await resolveSession(timeoutMs)
+  async function waitForUser(_timeoutMs = 0): Promise<any> {
+    if (user.value) return user.value
+    const { session, userId } = await resolveSession()
     if (session?.user) return session.user
     if (user.value) return user.value
     const currentProfile = profile.value
@@ -183,7 +147,6 @@ export function useAuth() {
       const { data, error } = await authClient.auth.signInWithPassword({ email, password })
       if (error) throw error
 
-      await waitForUser()
       const nextProfile = await fetchProfile(data.user?.id)
       toast.add({ title: 'Giriş başarılı', color: 'success', icon: 'i-lucide-check-circle' })
       return nextProfile
@@ -223,7 +186,6 @@ export function useAuth() {
       if (error) throw error
 
       if (data.session && data.user) {
-        await waitForUser()
         await fetchProfile(data.user.id)
         toast.add({
           title: 'Kayıt ve giriş başarılı',

@@ -56,24 +56,27 @@ function openCreate() {
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   saving.value = true
-  const options = [
-    event.data.option1,
-    event.data.option2,
-    event.data.option3,
-    event.data.option4
-  ].filter(Boolean) as string[]
+  try {
+    const options = [
+      event.data.option1,
+      event.data.option2,
+      event.data.option3,
+      event.data.option4
+    ].filter(Boolean) as string[]
 
-  const ok = await create({
-    title: event.data.title,
-    description: event.data.description || null,
-    status: event.data.status,
-    ends_at: event.data.ends_at ? new Date(event.data.ends_at).toISOString() : null,
-    options
-  })
-  saving.value = false
-  if (ok) {
-    open.value = false
-    resetForm()
+    const ok = await create({
+      title: event.data.title,
+      description: event.data.description || null,
+      status: event.data.status,
+      ends_at: event.data.ends_at ? new Date(event.data.ends_at).toISOString() : null,
+      options
+    })
+    if (ok) {
+      open.value = false
+      resetForm()
+    }
+  } finally {
+    saving.value = false
   }
 }
 
@@ -195,17 +198,17 @@ onMounted(() => fetchAll(true))
           <li
             v-for="option in item.options"
             :key="option.id"
-            class="rounded-md border border-line bg-soft/40 px-3 py-2"
+            class="rounded-md border border-line bg-[color-mix(in_srgb,var(--ays-soft)_80%,transparent)] px-3 py-2"
           >
             <div class="mb-1 flex items-center justify-between gap-3 text-sm">
               <span class="font-medium text-ink">{{ option.label }}</span>
-              <span class="text-muted-ink">
+              <span class="font-medium !text-[#1E2A38] dark:!text-white">
                 {{ option.vote_count || 0 }} oy · %{{ percent(option.vote_count || 0, item.total_votes || 0) }}
               </span>
             </div>
             <div class="h-1.5 overflow-hidden rounded-full bg-line">
               <div
-                class="h-full rounded-full bg-[var(--color-pine-600,#2F5D50)] transition-all"
+                class="h-full rounded-full bg-[var(--ays-accent)] transition-all"
                 :style="{ width: `${percent(option.vote_count || 0, item.total_votes || 0)}%` }"
               />
             </div>

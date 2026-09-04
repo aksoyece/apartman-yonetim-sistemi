@@ -4,12 +4,13 @@ export function usePayments() {
   const supabase = useDb()
   const toast = useToast()
   const { user } = useAuth()
-  const items = ref<Payment[]>([])
-  const pending = ref(false)
-  const error = ref<string | null>(null)
+  const items = useState<Payment[]>('payments-items', () => [])
+  const pending = useState('payments-pending', () => false)
+  const error = useState<string | null>('payments-error', () => null)
 
   async function fetchAll() {
-    pending.value = true
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
     error.value = null
     try {
       const { data, error: fetchError } = await supabase
@@ -41,6 +42,34 @@ export function usePayments() {
         .from('payments')
         .select('*, apartment:apartments(*), due:dues(*)')
         .in('apartment_id', apartmentIds)
+        .order('payment_date', { ascending: false })
+
+      if (fetchError) throw fetchError
+      items.value = (data ?? []) as Payment[]
+    } catch (err) {
+      error.value = getErrorMessage(err)
+    } finally {
+      pending.value = false
+    }
+  }
+
+  /** Daire listesini beklemeden malikin ödemelerini çeker */
+  async function fetchMine() {
+    const hadItems = items.value.length > 0
+    if (!hadItems) pending.value = true
+    error.value = null
+    try {
+      const { profile, resolveSession } = useAuth()
+      const userId = profile.value?.id || (await resolveSession()).userId
+      if (!userId) {
+        if (!hadItems) items.value = []
+        return
+      }
+
+      const { data, error: fetchError } = await supabase
+        .from('payments')
+        .select('*, apartment:apartments!inner(*), due:dues(*)')
+        .eq('apartment.owner_id', userId)
         .order('payment_date', { ascending: false })
 
       if (fetchError) throw fetchError
@@ -93,9 +122,8 @@ export function usePayments() {
   }
 
   async function payDue(dueId: string, method: PaymentMethod = 'transfer', notes?: string | null) {
-    const { ensureSession, resolveSession } = useAuth()
+    const { ensureSession } = useAuth()
     await ensureSession()
-    await resolveSession()
 
     const { error: rpcError } = await supabase.rpc('resident_pay_due', {
       p_due_id: dueId,
@@ -127,6 +155,7 @@ export function usePayments() {
     error,
     fetchAll,
     fetchByApartmentIds,
+    fetchMine,
     create,
     payDue,
     remove

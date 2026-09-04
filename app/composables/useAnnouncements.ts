@@ -5,7 +5,7 @@ export function useAnnouncements() {
   const toast = useToast()
   const { user, resolveSession } = useAuth()
   const items = useState<Announcement[]>('announcements-items', () => [])
-  const pending = useState('announcements-pending', () => true)
+  const pending = useState('announcements-pending', () => false)
   const error = useState<string | null>('announcements-error', () => null)
   const lastIncludeInactive = useState<boolean | null>('announcements-include-inactive', () => null)
 

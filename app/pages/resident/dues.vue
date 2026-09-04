@@ -7,10 +7,14 @@ definePageMeta({
 })
 
 const { items: apartments, fetchMine, pending: aptPending, mineReady } = useApartments()
-const { items, pending: duesPending, error, fetchByApartmentIds } = useDues()
+const { items, pending: duesPending, error, fetchMine: fetchMyDues } = useDues()
 const { payDue } = usePayments()
 
-const pending = computed(() => aptPending.value || duesPending.value || !mineReady.value)
+const pending = computed(() =>
+  (aptPending.value && !apartments.value.length)
+  || (duesPending.value && !items.value.length)
+  || (!mineReady.value && !apartments.value.length)
+)
 
 const debtTotal = computed(() =>
   items.value.filter(d => d.status !== 'paid').reduce((sum, d) => sum + Number(d.amount), 0)
@@ -40,18 +44,17 @@ async function confirmPay() {
   if (ok) {
     open.value = false
     selected.value = null
-    await fetchByApartmentIds(apartments.value.map(a => a.id))
+    await fetchMyDues()
   }
 }
 
-async function load() {
-  await fetchMine()
-  if (apartments.value.length) {
-    await fetchByApartmentIds(apartments.value.map(a => a.id))
-  }
-}
+onMounted(() => {
+  void Promise.all([fetchMine(), fetchMyDues()])
+})
 
-onMounted(load)
+function reload() {
+  void Promise.all([fetchMine(), fetchMyDues()])
+}
 </script>
 
 <template>
@@ -75,9 +78,9 @@ onMounted(load)
       v-if="error"
       class="mb-6"
       :message="error"
-      @retry="load"
+      @retry="reload"
     />
-    <LoadingState v-else-if="pending" />
+    <LoadingState v-else-if="pending && !items.length" />
     <EmptyState
       v-else-if="!apartments.length"
       title="Atanmış daire yok"
